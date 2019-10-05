@@ -1,0 +1,9 @@
+#!/bin/sh
+# locate the system call table in /boot/System.map-$(uname -r)
+TAB=sys_call_table
+
+if [ "$1" = "-32" ]
+then
+  TAB="ia32_$TAB"
+fi
+cat /boot/System.map-$(uname -r) | grep "$TAB" | sed 1q | cut -d ' ' -f 1
