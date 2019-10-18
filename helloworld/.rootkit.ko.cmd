@@ -1,0 +1,1 @@
+cmd_/home/student/Desktop/linux_kernel_module/linux-rootkit-module/rootkit.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/student/Desktop/linux_kernel_module/linux-rootkit-module/rootkit.ko /home/student/Desktop/linux_kernel_module/linux-rootkit-module/rootkit.o /home/student/Desktop/linux_kernel_module/linux-rootkit-module/rootkit.mod.o ;  true
