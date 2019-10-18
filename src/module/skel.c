@@ -5,11 +5,11 @@
 /* module skeleton */
 
 /* module cleanup */
-static void __exit do_exit(void) {
+static void __exit skel_cleanup(void) {
 }
 
 /* module initialization */
-static int __init do_init(void) {
+static int __init skel_init(void) {
   return 0;
 }
 
