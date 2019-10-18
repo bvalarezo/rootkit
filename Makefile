@@ -1,16 +1,9 @@
-CC := gcc
-DEFS := -D__KERNEL__ -DLINUX -DMODULE
-KERNEL := `uname -r`
-INCLUDE := -I include -isystem /usr/src/kernel-headers-$(KERNEL)/include
-WARN := -Wall -Werror -Wmissing-prototypes -Wstrict-prototypes
-CFLAGS := -c $(DEFS) $(INCLUDE) $(WARN)
-SRCS := $(wildcard src/*.c) $(wildcard src/*/*.c)
+BUILD_DIR := /lib/modules/`uname -r`/build
 
-all: $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS)
+all:
+	make -C "$(BUILD_DIR)" M="$$PWD" modules
 
 .PHONY: clean
 
 clean:
-	rm -f *.o
-
+	make -C "$(BUILD_DIR)" M="$$PWD" clean
