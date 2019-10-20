@@ -1,26 +1,45 @@
-#include "sctm.h"
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 
-/* system call table modification module */
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
 
-struct sctm_hook hook = (struct sctm_hook) {
-  .hooked = 0,
-  .original = NULL
+/* syscall table modification module */
+
+#define MAX_CALL 0
+
+/* hooked system call */
+struct sctm_hook {
+  unsigned int call;
+  hook;
+  int hooked;
+  void *original;
 };
-unsigned int _hook_call = 0;
-sctm_syscall_handler_t _hook_hook = NULL;
-sctm_syscall_handler_t *table = NULL;
 
-static void __exit sctm_exit(void) {
+extern int errno;
+void *sctm_dummy_hook;
+static struct sctm_hook hook = (struct sctm_hook) {
+  .call = MAX_CALL - 1,
+  .hook = sctm_dummy_hook,
+  .hooked = 0
+};
+static void **table;
+
+/* module cleanup */
+static void __exit sctm_cleanup(void) {
   /* unhook the call */
 
-  sctm_unhook(table, &hook);
+  sctm_unhook(table, hooked);
 }
 
-static int sctm_hook(sctm_syscall_handler_t *table, struct sctm_hook *hook) {
+/* hook the system call table */
+static void sctm_hook(void **table, struct sctm_hook *hook) {
   if (hook == NULL)
     return -EINVAL;
   
-  if (hook->call > SCTM_TABLE_SIZE)
+  if (hook->call > MAX_CALL)
     return -EINVAL;
 
   if (hook->hooked)
@@ -34,15 +53,11 @@ static int sctm_hook(sctm_syscall_handler_t *table, struct sctm_hook *hook) {
   return 0;
 }
 
+/* module initialization */
 static int __init sctm_init(void) {
   int retval;
 
-  /* load the parameters */
-
-  hook.call = _hook_call;
-  hook.hook = _hook_hook;
-
-  if (hook.call > SCTM_TABLE_SIZE)
+  if (hook->call > MAX_CALL)
     return -EINVAL;
 
   /* locate the table */
@@ -51,36 +66,26 @@ static int __init sctm_init(void) {
 
   if (retval)
     return retval;
-  return sctm_hook(table, &hook);
+  return sctm_hook(&hook);
 }
 
-static int sctm_locate_sys_call_table(sctm_syscall_handler_t **dest) {
-  void *max_ptr;
-
+/* locate the system call table */
+static int sctm_locate_sys_call_table(void **dest) {
   if (dest == NULL)
     return -EFAULT;
-#ifdef SCTM_KALLSYMS_LOOKUP_NAME
-  *dest = (sctm_syscall_handler_t) kallsyms_lookup_name("sys_call_table");
-#else
-  /* iteratively detect for the system call table (it's cache-aligned) */
-
-  max_ptr = (void *) ~0;
-
-  for (*dest = 0; (void *) *dest < max_ptr && **dest != (sctm_syscall_handler_t) &sys_read; *dest += SMP_CACHE_BYTES);
-
-  if ((void *) *dest == max_ptr)
-    *dest = NULL;
-#endif
+  *dest = kallsyms_lookup_name("sys_call_table");
+  
   if (*dest == NULL)
     return errno ? -errno : -EFAULT;
   return 0;
 }
 
-static int sctm_unhook(sctm_syscall_handler_t *table, struct sctm_hook *hook) {
+/* unhook a system call */
+static int sctm_unhook(void **table, struct sctm_hook *hook) {
   if (hook == NULL)
     return -EFAULT;
   
-  if (hook->call > SCTM_TABLE_SIZE)
+  if (hook->call > MAX_CALL)
     return -EINVAL;
 
   if (table[hook->call] == hook->hook)
@@ -88,4 +93,9 @@ static int sctm_unhook(sctm_syscall_handler_t *table, struct sctm_hook *hook) {
   hook->hooked = 0;
   return 0;
 }
+
+module_exit(sctm_exit);
+module_init(sctm_init);
+module_param(hook->call, unsigned int, 0x0700);
+module_param(hook->hook, void *, 0x0700);
 
