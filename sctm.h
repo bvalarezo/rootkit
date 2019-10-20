@@ -8,7 +8,7 @@
 /* system call table modification module */
 
 /* #define SCTM_KALLSYMS_LOOKUP_NAME */
-#define SCTM_TABLE_SIZE __NR_syscall_max
+#define SCTM_TABLE_SIZE 547 /* __NR_syscall_max */
 
 /* convenient type alias */
 typedef asmlinkage long (*sctm_syscall_handler_t)(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long);
