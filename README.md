@@ -52,3 +52,11 @@ SysCall N:
 Misc. Specifications:
 - Kernel Version Choice: Doesn't matter
 - Potentially add a new module to handle the direct calling of syscalls.
+======================================================================================================================
+10/25
+Idea for hiding:
+Mask most significant bit of inode
+-file
+-process     (check /proc)
+-directory
+    -traverse all the way up to root and see if any directory is hidden.
