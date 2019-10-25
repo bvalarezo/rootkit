@@ -1,3 +1,10 @@
+#ifndef SCTM_H
+#define SCTM_H
+
+#define __KERNEL__
+#define LINUX
+#define MODULE
+
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -44,9 +51,13 @@ static int sctm_locate_sys_call_table(sctm_syscall_handler_t **dest);
 /* unhook a system call */
 static int sctm_unhook(sctm_syscall_handler_t *table, struct sctm_hook *hook);
 
+MODULE_LICENSE("GPL");
+
 module_exit(sctm_exit);
 module_init(sctm_init);
 
 /*module_param(_hook_call, int, 0x0700);
 module_param(_hook_hook, sctm_syscall_handler_t, 0x0700);*/
+
+#endif
 
