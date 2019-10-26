@@ -7,10 +7,10 @@
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/syscalls.h>
+#include <linux/version.h>
 
 /* system call table modification module */
 
-/* #define SCTM_KALLSYMS_LOOKUP_NAME */
 #define SCTM_TABLE_SIZE 547 /* __NR_syscall_max */
 
 /* convenient type alias */

@@ -59,7 +59,7 @@ static int sctm_locate_sys_call_table(sctm_syscall_handler_t **dest) {
 
   if (dest == NULL)
     return -EFAULT;
-#ifdef SCTM_KALLSYMS_LOOKUP_NAME
+#if CONFIG_KALLSYMS
   *dest = (sctm_syscall_handler_t) kallsyms_lookup_name("sys_call_table");
 #else
   /* iteratively detect for the system call table (it's cache-aligned) */
