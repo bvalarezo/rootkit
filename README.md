@@ -53,10 +53,15 @@ Misc. Specifications:
 - Kernel Version Choice: Doesn't matter
 - Potentially add a new module to handle the direct calling of syscalls.
 ======================================================================================================================
-10/25
-Idea for hiding:
+## 10/25
+### Idea for hiding:
 Mask most significant bit of inode
 -file
 -process     (check /proc)
 -directory
     -traverse all the way up to root and see if any directory is hidden.
+
+## potential design/interaction protocol
+- base module which runs any command as root (extensible & decreases # of evil modules)
+- evil binary which passes a command to the base module
+
