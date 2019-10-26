@@ -1,10 +1,10 @@
-BUILD_DIR := /lib/modules/`uname -r`/build
-objs += sctm.o
+VERSION := `uname -r`
+KDIR := /lib/modules/$(VERSION)/build
+WD := `pwd`
 
-all:
-	make -C "$(BUILD_DIR)" M="$$PWD" modules
-
-.PHONY: clean
+kbuild:
+	make -C "$(KDIR)" M="$(WD)"
 
 clean:
-	make -C "$(BUILD_DIR)" M="$$PWD" clean
+	make -C "$(KDIR)" M="$(WD)" clean
+
