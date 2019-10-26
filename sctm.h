@@ -1,10 +1,6 @@
 #ifndef SCTM_H
 #define SCTM_H
 
-#define __KERNEL__
-#define LINUX
-#define MODULE
-
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
