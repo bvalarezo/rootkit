@@ -55,8 +55,9 @@ static int __init sctm_init(void) {
 }
 
 static int sctm_locate_sys_call_table(sctm_syscall_handler_t **dest) {
+#ifndef CONFIG_KALLSYMS
   void *max_ptr;
-
+#endif
   if (dest == NULL)
     return -EFAULT;
 #if CONFIG_KALLSYMS
