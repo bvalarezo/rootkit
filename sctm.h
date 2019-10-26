@@ -24,7 +24,6 @@ struct sctm_hook {
   sctm_syscall_handler_t original;
 };
 
-extern int errno;
 struct sctm_hook hook;
 unsigned int _hook_call;
 sctm_syscall_handler_t _hook_hook;
