@@ -3,8 +3,8 @@
 
 /* generic module inclusions */
 
-#define DRIVER_AUTHOR "(Authorless)"
-#define DRIVER_DESC "(Descriptionless)"
+#define DRIVER_AUTHOR "Authorless"
+#define DRIVER_DESC "Descriptionless"
 
 #define __KERNEL__
 #define LINUX
@@ -13,6 +13,7 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/kallsysm.h>
 
 /* exit/init macros can now be used */
 

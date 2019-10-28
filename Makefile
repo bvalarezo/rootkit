@@ -1,15 +1,11 @@
-CC := gcc
-DEFS := -D__KERNEL__ -DLINUX -DMODULE
-INCLUDE := -isystem /usr/src/kernel-headers-$(KERNEL)/include
-KERNEL := `uname -r`
-WARN := -Wall -Werror -Wmissing-prototypes -Wstrict-prototypes
-CFLAGS := $(DEFS) $(INCLUDE) $(WARN)
-OBJS := $(patsubst %.c, %.o, $(wildcard *.c))
-
-all: $(OBJS)
-
-.PHONY: clean
-
+obj-m += skel.o
+all:
+		make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 clean:
-	rm -f *.o
+		make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 
+test:
+		sudo dmesg -C
+		sudo insmod rk.ko
+		sudo rmmod rk.ko
+		dmesg
