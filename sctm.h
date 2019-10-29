@@ -48,7 +48,7 @@ struct sctm_hook hook;
 unsigned long _hook_call;
 sctm_syscall_handler_t _hook_hook;
 enum sctm_unhook_mode _hook_unhook_mode;
-static struct sctm_hook_list *sctm__hook_wrapper_table[SCTM_TABLE_SIZE]; /* workaround for not being able to pass a hook to sctm__hook_wrapper */
+static struct sctm_hook *sctm__hook_wrapper_table[SCTM_TABLE_SIZE]; /* workaround for not being able to pass a hook to sctm__hook_wrapper */
 extern sctm_syscall_handler_t SCTM_TABLE_FIRST_HANDLER;
 sctm_syscall_handler_t *table;
 
@@ -68,7 +68,7 @@ static int __init sctm__init(void);
 static int sctm__locate_sys_call_table(sctm_syscall_handler_t **dest);
 
 /* set a system call handler */
-static int sctm__set_syscall(sctm_syscall_handler_t *table, long call, sctm_syscall_handler_t handler);
+static int sctm__set_syscall_handler(sctm_syscall_handler_t *table, unsigned long call, sctm_syscall_handler_t handler);
 
 /* unhook a system call */
 static int sctm__unhook(sctm_syscall_handler_t *table, struct sctm_hook *hook);

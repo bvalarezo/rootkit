@@ -32,7 +32,7 @@ static int sctm__hook(sctm_syscall_handler_t *table, struct sctm_hook *hook) {
   if (table == NULL)
     return -EFAULT;
   hook->original = table[hook->call];
-  retval = sctm__set_syscall_handler(table, hook->call, hook->hook)
+  retval = sctm__set_syscall_handler(table, hook->call, hook->hook);
 
   if (retval)
     return retval;
