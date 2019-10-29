@@ -142,6 +142,8 @@ static int sctm__set_syscall_handler(sctm_syscall_handler_t *table, unsigned lon
 }
 
 static int sctm__unhook(sctm_syscall_handler_t *table, struct sctm_hook *hook) {
+  int retval;
+
   if (hook == NULL)
     return -EFAULT;
   
@@ -149,10 +151,14 @@ static int sctm__unhook(sctm_syscall_handler_t *table, struct sctm_hook *hook) {
     return -EINVAL;
 
   if (table[hook->call] == hook->hook
-      && hook->unhook_mode == SCTM_UNHOOK_MODE_HARD)
+      && hook->unhook_mode == SCTM_UNHOOK_MODE_HARD) {
     /* replace with the original entry */
 
-    table[hook->call] = hook->original;
+    retval = sctm__set_syscall_handler(table, hook->call, hook->original);
+
+    if (retval)
+      return retval;
+  }
   hook->hooked = 0;
   return 0;
 }
