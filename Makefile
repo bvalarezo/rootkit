@@ -6,5 +6,6 @@ kbuild:
 	make -C "$(KDIR)" M="$(WD)"
 
 clean:
-	make -C "$(KDIR)" M="$(WD)" clean
+	rm *.ko modules.order Module.symvers *.o
+	make -C "$(KDIR)" M="$(WD)" clean 
 
