@@ -33,8 +33,8 @@ int locate_sys_call_table(void) {
 #if CONFIG_KALLSYMS
   /* kernel symbols are accessible */
   printk("CONFIG_KALLSYMS is enabled!");
-  unsigned long tmp = (unsigned long**) kallsyms_lookup_name("sys_call_table");
-  printk("kallsyms says the sys_call_table is at %p\n", tmp)
+  unsigned long **tmp = (unsigned long**) kallsyms_lookup_name("sys_call_table");
+  printk("kallsyms says the sys_call_table is at %p\n", tmp);
   sys_call_table_addr = (addr_size *) kallsyms_lookup_name("sys_call_table");
 
 
