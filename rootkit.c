@@ -13,7 +13,7 @@ int rootkit_init(void) {
   retval = locate_sys_call_table();
   if (retval == EFAULT)
     return retval;
-  printk("We found the sys call table at %p", sys_call_table_addr);
+  printk("We found the sys call table at %p\n", sys_call_table_addr);
   return 0;
 }
 
@@ -33,7 +33,12 @@ int locate_sys_call_table(void) {
 #if CONFIG_KALLSYMS
   /* kernel symbols are accessible */
   printk("CONFIG_KALLSYMS is enabled!");
+  unsigned long tmp = (unsigned long**) kallsyms_lookup_name("sys_call_table");
+  printk("kallsyms says the sys_call_table is at %p\n", tmp)
   sys_call_table_addr = (addr_size *) kallsyms_lookup_name("sys_call_table");
+
+
+
 #else
   /* iteratively detect for the system call table */
   printk("CONFIG_KALLSYMS is disabled!");
