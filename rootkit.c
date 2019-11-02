@@ -33,7 +33,7 @@ int locate_sys_call_table(void) {
 #if CONFIG_KALLSYMS
   /* kernel symbols are accessible */
   printk("CONFIG_KALLSYMS is enabled!");
-  syscall_table_addr = (addr_size *) kallsyms_lookup_name("sys_call_table");
+  sys_call_table_addr = (addr_size *) kallsyms_lookup_name("sys_call_table");
 #else
   /* iteratively detect for the system call table */
   printk("CONFIG_KALLSYMS is disabled!");

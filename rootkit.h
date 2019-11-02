@@ -1,5 +1,6 @@
 #ifndef rootkit_H
 #define rootkit_H
+#endif
 
 #include <linux/errno.h>
 #include <linux/init.h>
