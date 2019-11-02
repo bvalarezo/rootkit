@@ -4,6 +4,6 @@ KERNEL_DIR = /lib/modules/$(shell uname -r)/build
 #KERNEL_DIR = ~/
 PWD = $(shell PWD)
 all:
- $(MAKE) -C $(KERNEL_DIR) SUBDIRS=$(PWD)
+	$(MAKE) -C $(KERNEL_DIR) SUBDIRS=$(PWD)
 clean:
- rm -rf *.o *.ko *.symvers *.mod.* *.order
+	rm -rf *.o *.ko *.symvers *.mod.* *.order
