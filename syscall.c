@@ -112,6 +112,6 @@ int main(int argc, char **argv) {
 
   /* execute the syscall */
 
-  return (int) syscall(args[0], args[1], args[2], args[3], args[4], args[5]);
+  printf("Returned: %u\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
 }
 
