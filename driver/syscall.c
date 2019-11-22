@@ -1,3 +1,5 @@
+/*  */
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -96,7 +98,12 @@ int main(int argc, char **argv) {
         return 1;
       }
     } else if (*argv[i] == '@') {
-      /* got string classification prefix (mnemonic: "@" for array) */
+      /*
+      got string classification prefix (mnemonic: "@" for array)
+
+      unfortunately, we need this prefix,
+      especially when considering whether "0" is a string or an array
+      */
 
       args[i - 1] = (unsigned long) &argv[i][1];
     } else {
