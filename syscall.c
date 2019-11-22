@@ -80,16 +80,29 @@ int main(int argc, char **argv) {
 
   if (argc < 2) {
     printf("%s - make a system call\n" \
-      "Usage: %s 0xHEXULONG ...\n", *argv, *argv);
+      "Usage: %s [ULONG | 0xHEXULONG | @CARRAY] ...\n", *argv, *argv);
     return 1;
   }
 
   /* fill slots */
 
   for (i = 1; i < argc; i++) {
-    if (htoul(&args[i - 1], argv[i])) {
-      printf("Expected an unsigned long encoded as hexadecimal (native endianness), got: \"%s\"\n", argv[i]);
-      return 1;
+    if (*argv[i] == '0'
+        && tolower(*(argv[i] + 1)) == 'x') {
+      /* seems like it's a hex argument */
+      
+      if (htoul(&args[i - 1], argv[i])) {
+        printf("Saw \"0x\" prefix, but got malformed hex: \"%s\"\n", argv[i]);
+        return 1;
+      }
+    } else if (*argv[i] == '@') {
+      /* got string classification prefix (mnemonic: "@" for array) */
+
+      args[i - 1] = (unsigned long) &argv[i][1];
+    } else {
+      /* probably an integer argument */
+
+      args[i - 1] = atoi(argv[i]);
     }
   }
 
@@ -100,11 +113,11 @@ int main(int argc, char **argv) {
 
   /* confirm */
 
-  printf("About to execute system call 0x%x with these arguments:", args[0]);
+  printf("Execute `syscall(");
   
-  for (i = 1; i < 6; i++)
-    printf(" 0x%x", args[i]);
-  printf("; is this okay? [Y/n]");
+  for (i = 0; i < 5; i++)
+    printf("0x%x, ", args[i]);
+  printf("0x%x)`? [Y/n] ", args[i]);
   fflush(stdout);
 
   if (tolower(getchar()) != 'y')
@@ -112,6 +125,6 @@ int main(int argc, char **argv) {
 
   /* execute the syscall */
 
-  printf("Returned: %u\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
+  printf("\t->%u\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
 }
 
