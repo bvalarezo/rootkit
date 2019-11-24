@@ -11,4 +11,5 @@ modules.order
 .tmp_versions
 *.cmd
 *.mod.c
+syscall
 
