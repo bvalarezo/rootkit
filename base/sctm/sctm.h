@@ -29,8 +29,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /* system call table modification module */
 
-#undef SCTM__X86_64_TABLE_SIZE
-
+/* minimum 32-bit kernel-space virtual address */
+#ifndef SCTM__32_MEM_MIN_ADDRESS
+#define SCTM__32_MEM_MIN_ADDRESS ((void *) 0xC0000000)
+#endif
+/* minimum 64-bit kernel-space virtual address */
+#ifndef SCTM__64_MEM_MIN_ADDRESS
+#define SCTM__64_MEM_MIN_ADDRESS ((void *) 0xFFFF800000000000)
+#endif
 /* module post-exit hook */
 #ifndef SCTM_EXIT_POST_HOOK
 #define SCTM_EXIT_POST_HOOK() sctm__return_0()
@@ -47,13 +53,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef SCTM_INIT__PRE_HOOK
 #define SCTM_INIT_PRE_HOOK() sctm__return_0()
 #endif
-/* maximum memory address */
+/* maximum kernel-space virtual memory address */
 #ifndef SCTM_MEM_MAX_ADDRESS
 #define SCTM_MEM_MAX_ADDRESS (~((void *) 0))
 #endif
+/* minimum kernel-space virtual memory address */
+#ifndef SCTM_MEM_MIN_ADDRESS
+#define SCTM_MEM_MIN_ADDRESS SCTM__64_MEM_MIN_ADDRESS
+#endif
 /*
 the maximum number of syscalls
-(obtained by liberally hand-consolidating "include/linux/syscalls.h"
+(obtained by liberally consolidating "include/linux/syscalls.h" by hand
 and the `grep`ping for "^asmlinkage")
 */
 #ifndef SCTM_MAX_SYSCALLS
@@ -64,7 +74,9 @@ and the `grep`ping for "^asmlinkage")
 #define SCTM_TABLE_SIZE SCTM__X86_64_TABLE_SIZE
 #endif
 /* system call table size on x86_64 */
+#ifndef SCTM__X86_64_TABLE_SIZE
 #define SCTM__X86_64_TABLE_SIZE 547
+#endif
 
 /* convenient type alias */
 typedef asmlinkage long (*sctm_syscall_handler_t)(unsigned long,

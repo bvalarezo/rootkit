@@ -201,7 +201,9 @@ static int sctm__locate_sys_call_table(void) {
 
   /* search for the system call table */
 
-  for (table = 0; table <= max_ptr; table += SMP_CACHE_SIZE) {
+  for (table = SCTM_MEM_MIN_ADDRESS;
+      SCTM_MEM_MAX_ADDRESS - SMP_CACHE_SIZE >= 0;
+      table += SMP_CACHE_SIZE) { /* prevent address space exhaustion early */
     /* clear histogram */
 
     for (addrs.count = ai = 0; ai < SCTM_TABLE_SIZE; ai++)
@@ -209,12 +211,7 @@ static int sctm__locate_sys_call_table(void) {
 
     /* populate histogram */
 
-    for (ti = 0, ptr = table; ti < SCTM_TABLE_SIZE; ti++) {
-      if (ptr >= SCTM_MEM_MAX_ADDRESS)
-        /* exhausted address space */
-
-        return -EFAULT;
-      
+    for (ti = 0, ptr = table; ti < SCTM_TABLE_SIZE; ptr++, ti++) {
       /*
       add the possible address to the histogram
       
