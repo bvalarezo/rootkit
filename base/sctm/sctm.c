@@ -186,7 +186,7 @@ static int sctm__locate_sys_call_table(void) {
   (albeit more expensive) workaround:
   1. the table is cache-aligned
   2. the size is known
-  3. a rough upper limit on the number of entries is known
+  3. there's a rough upper limit on the number of entries
   and
   4. undefined entries have the same value
 
