@@ -22,7 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <poison.h>
+#include <linux/poison.h>
 #include <linux/string.h>
 #include <linux/syscalls.h>
 #include <linux/version.h>
@@ -46,6 +46,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /* module pre-initialization hook (return success) */
 #ifndef SCTM_INIT__PRE_HOOK
 #define SCTM_INIT_PRE_HOOK() sctm__return_0()
+#endif
+/* maximum memory address */
+#ifndef SCTM_MEM_MAX_ADDRESS
+#define SCTM_MEM_MAX_ADDRESS (~((void *) 0))
 #endif
 /*
 the maximum number of syscalls
@@ -72,6 +76,16 @@ enum sctm_unhook_method {
   SCTM_UNHOOK_METHOD_DISABLE,
   /* replace the system call table entry with its original value */
   SCTM_UNHOOK_METHOD_REPLACE
+};
+
+/* histogram of system call handlers */
+struct sctm_syscall_handler_hist {
+  size_t count;
+  /* hash table-based histogram */
+  struct sctm_syscall_handler_histent {
+    unsigned int count;
+    sctm_syscall_handler_t handler;
+  } hist[SCTM_TABLE_SIZE];
 };
 
 /* hooked system call */
@@ -121,11 +135,15 @@ static int __init sctm__init(void);
 static int sctm__locate_sys_call_table(void);
 
 /* return 0 (compiler workaround) */
-static int sctm__return_0(void);
+static inline int sctm__return_0(void);
 
 /* set a system call handler */
-static int sctm__set_syscall_handler(unsigned long call,
-  sctm_syscall_handler_t handler);
+static int sctm__set_syscall_handler(const unsigned long call,
+  const sctm_syscall_handler_t handler);
+
+/* place the sum-modulus hash for `buf` into `dest` */
+static inline int sctm__sum_mod_hash(size_t *dest, const unsigned char *buf, size_t count,
+  const unsigned short mod);
 
 /* unhook and possibly deregister a hooked system call */
 int sctm_unhook(struct sctm_hook *hook);

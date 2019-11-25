@@ -147,22 +147,30 @@ static int __init sctm__init(void) {
 }
 
 static int sctm__locate_sys_call_table(void) {
+  if (sctm__table != NULL)
+    /* the table seems to have already been found */
+
+    return 0;
 #if CONFIG_KALLSYMS
   /* kernel symbols are accessible */
 
   sctm__table = (sctm_syscall_handler_t *)
     kallsyms_lookup_name("sys_call_table");
 #else
-  /* incrementing hash table for perceived addresses */
-  struct {
-    unsigned int size;
-    struct {
-      int count;
-      void *p;
-    } table[SCTM_TABLE_SIZE];
-  } addresses;
-  unsigned int i;
-  void *max_ptr;
+  size_t addr_hash;
+  struct sctm_hist addrs; /* histogram of addresses */
+  unsigned int ai;
+  unsigned int ai_final;
+  double dev; /* individual deviation */
+  unsigned double mean;
+  unsigned int modei; /* index of the mode */
+  sctm_syscall_handler_t poisoned; /* poisoned pointer */
+  /* pointer within the possible system call table */
+  sctm_syscall_handler_t *ptr;
+  int retval;
+  unsigned double sd; /* standard deviation */
+  sctm_syscall_handler_t *table; /* possible system call table */
+  unsigned int ti;
 
   /*
   search for the system call table
@@ -186,33 +194,115 @@ static int sctm__locate_sys_call_table(void) {
   address is the start of the system call table
   */
 
-  for (i = 0; i < SCTM_TABLE_SIZE; i++)
-    addresses.table[i].count = 0;
-    /* no need to set `addresses.table[i].p` */
-  max_ptr = (void *) ~0;
+  /* poison our pointer */
 
-  for (sctm__table = 0; (void *) sctm__table < max_ptr
-      && *sctm__table != SCTM_TABLE_FIRST_ENTRY;
-      sctm__table += SMP_CACHE_BYTES);
+  for (ai = 0; ai < sizeof(sctm_syscall_handler_t); ai++)
+    ((char *) poisoned)[ai] = (char) PAGE_POISON;
 
-  if ((void *) sctm__table >= max_ptr)
-    sctm__table = NULL;
+  /* search for the system call table */
+
+  for (table = 0; table <= max_ptr; table += SMP_CACHE_SIZE) {
+    /* clear histogram */
+
+    for (addrs.count = ai = 0; ai < SCTM_TABLE_SIZE; ai++)
+      addrs.hist[ai].count = 0;
+
+    /* populate histogram */
+
+    for (ti = 0, ptr = table; ti < SCTM_TABLE_SIZE; ti++) {
+      if (ptr >= SCTM_MEM_MAX_ADDRESS)
+        /* exhausted address space */
+
+        return -EFAULT;
+      
+      /*
+      add the possible address to the histogram
+      
+      this won't fail, because the table is a sufficient size
+      */
+
+      ai = sctm__sum_mod_hash(&addr_hash, ptr,
+        sizeof(sctm_syscall_handler_t), SCTM_TABLE_SIZE);
+
+      for (ai_final = ai > 0 ? ai - 1 : SCTM_TABLE_SIZE - 1;
+          ai != ai_final; ai++) {
+        if (!addrs.hist[ai].count
+            || addrs.hist[ai].value == *ptr) {
+          addrs.count++;
+          addrs.hist[count]++;
+          addrs.hist[ai].value = *ptr;
+          break;
+        }
+      }
+    }
+
+    /* calculate the mean and mode */
+
+    for (ai = mean = modei = 0; ai < SCTM_TABLE_SIZE; ai++) {
+      if (addrs.hist[ai].count > addrs.hist[modei].count)
+        modei = ai;
+      mean += addrs.hist[ai].count;
+    }
+    mean /= addrs.count;
+
+    /* calculate the standard deviation */
+
+    for (ai = sd = 0; ai < SCTM_TABLE_SIZE; ai++) {
+      dev = addrs.hist[ai] - mean;
+      sd += dev >= 0 ? dev : -dev; /* `sd` must always be positive */
+    }
+    sd /= addrs.count;
+
+    /*
+    classify the histogram's mode as either
+    a repetition of `PAGE_POISON` (=> not the system call table)
+    or `&sys_ni_syscall` (=> `table` could be the system call table)
+    */
+
+    if (addrs.hist[modei].count - mean > sd) {
+      /* the mode's a definite outlier, as in the system call table */
+
+      if (addrs.hist[modei].handler == poisoned)
+        /*
+        it's filled with the `PAGE_POISON` value,
+        so likely not the system call table
+        */
+        
+        continue;
+      sctm__table = table;
+      break;
+    }
+  }
 #endif
-  if (sctm__table == NULL
-      || *sctm__table != SCTM_TABLE_FIRST_ENTRY)
-    return -EFAULT;
+  return sctm__table != NULL ? 0 : -EFAULT;
+}
+
+static inline int sctm__return_0(void) {
   return 0;
 }
 
-static int sctm__return_0(void) {
-  return 0;
-}
-
-static int sctm__set_syscall_handler(unsigned long call,
-    sctm_syscall_handler_t handler) {
+static int sctm__set_syscall_handler(const unsigned long call,
+    const sctm_syscall_handler_t handler) {
   if (call >= SCTM_TABLE_SIZE)
     return -EINVAL;
   /////////////////////////////////////////////////////////////////
+  return 0;
+}
+
+static inline int sctm__sum_mod_hash(size_t *dest, const unsigned char *buf,
+    size_t count, const unsigned short mod) {
+  if (dest == NULL)
+    return -EFAULT;
+  *dest = 0; /* prep failure */
+
+  if (buf == NULL)
+    return -EFAULT;
+
+  if (!mod)
+    return -EINVAL;
+
+  for (; count; buf++, count--)
+    *dest = (*buf + *dest) % mod; /* trade speed for overflow protection */
   return 0;
 }
 
