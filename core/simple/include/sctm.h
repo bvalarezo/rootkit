@@ -30,6 +30,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <linux/syscalls.h>
 #include <linux/version.h>
 
+/* include compile-time definitions */
+#ifdef SCTM_INCLUDE
+#undef SCTM__INCLUDE_JOIN
+#undef SCTM__INCLUDE_STRINGIFY
+
+#define SCTM__INCLUDE_JOIN(a, b) SCTM__INCLUDE_STRINGIFY(a/b)
+#define SCTM__INCLUDE_STRINGIFY(v) #v
+#include SCTM__INCLUDE_JOIN(., SCTM_INCLUDE)
+#endif
+
 /* system call table modification module */
 
 /* system call table size */
