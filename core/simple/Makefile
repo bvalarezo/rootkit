@@ -11,6 +11,6 @@ kbuild:
 	make -C "$(KDIR)" M="$(SRC)" modules
 
 clean:
-	cd "$(SRC)" && rm *.ko modules.order Module.symvers *.o
+	cd "$(SRC)" && rm .cache.mk *.ko modules.order Module.symvers *.o
 	make -C "$(KDIR)" M="$(SRC)" clean 
 

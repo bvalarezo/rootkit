@@ -4,44 +4,38 @@
 #include <linux/printk.h>
 #include <linux/version.h>
 
+/* define these ASAP */
+
+#define SCTM_EXIT_POST_HOOK() my_exit()
+#define SCTM_INIT_POST_HOOK() my_init()
+
 #include "sctm.h"
 
-/* rootkit interface */
+/* simple linux system call hook test using `sctm` */
 
-static struct sctm_hook iface__hook;
+static struct sctm_hook iface_hook;
+static const char *my_name = "test";
 
-static void __exit iface__exit(void) {
-  printk(KERN_INFO "[%s]: In `my_exit` (%p).\n", name, &iface__exit);
-  sctm_exit();
+static void my_exit(void) {
+  printk(KERN_INFO "[%s]: In `my_exit` (%p).\n", my_name, &my_exit);
 }
 
 unsigned long my_hook_func(unsigned long arg0, unsigned long arg1,
     unsigned long arg2, unsigned long arg3, unsigned long arg4,
     unsigned long arg5) {
-  printk(KERN_INFO "[%s]: In `iface_hook` (%p).\n", rootkit__name, &rootkit__hook_func);
+  printk(KERN_INFO "[%s]: In `my_hook_func` (%p).\n", my_name, &my_hook_func);
   return my_hook.hooked
     ? (*my_hook.original)(arg0, arg1, arg2, arg3, arg4, arg5)
     : -EINVAL;
 }
 
-static int __init iface__init(void) {
-  int retval;
-  
-  printk(KERN_INFO "[%s]: In `iface__init` (%p).\n", rootkit__name, &rootkit__init);
-  iface__hook = (struct sctm_hook) {
+static int my_init(void) { 
+  printk(KERN_INFO "[%s]: In `my_init` (%p).\n", my_name, &my_init);
+  my_hook = (struct sctm_hook) {
     .call = 102, /* `sys_getuid` */
-    .hook = (sctm_syscall_handler_t) &iface__hook_func,
+    .hook = (sctm_syscall_handler_t) &my_hook_func,
     .unhook_method = SCTM_UNHOOK_METHOD_REPLACE
   };
-  retval = sctm_init();
-  
-  if (retval)
-    return retval;
-  return sctm_hook(&iface__hook);
+  return sctm_hook(&my_hook);
 }
-
-module_exit(iface__exit)
-module_init(iface__init)
-
-MODULE_LICENSE("GPL");
 

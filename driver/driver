@@ -30,7 +30,7 @@
 #     unghost UID -> replace a user in "/etc/passwd" and "/etc/shadow"
 [ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
 CALL="$1" # 102 is a good value for x86_64 Linux
-COMMAND=system # execute a system command
+COMMAND=command # execute a system command
 
 if [ ! -z "$3" ]
 then

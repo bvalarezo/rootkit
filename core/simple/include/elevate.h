@@ -5,11 +5,11 @@
 
 /* elevate/drop EUIDs */
 
-/* elevate a process's EUID */
-int elevate(pid_t pid);
-
 /* drop a process's EUID */
-int elevate_drop(pid_t pid);
+int drop(const pid_t pid);
+
+/* elevate a process's EUID */
+int elevate(const pid_t pid);
 
 /* initialization */
 int elevate_init(void);

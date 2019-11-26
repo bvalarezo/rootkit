@@ -6,13 +6,13 @@
 /* hide/show directory entries */
 
 /* hide a directory entry */
-int hide(const char *name);
+int hide(const char *path);
 
 /* initialization */
 int hide_init(void);
 
 /* show a directory entry */
-int hide_show(const char *name);
+int show(const char *path);
 
 #endif
 
