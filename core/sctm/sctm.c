@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "sctm.h"
 
 /* system call table modification module */
-
+///////////////////////////////////////////////////differentiate between error codes for `NULL` and erronious pointers
 struct sctm_hook_lstacki *sctm__hook_registry[SCTM_TABLE_SIZE];
 sctm_syscall_handler_t *sctm__table = NULL;
 
@@ -350,33 +350,17 @@ static inline int sctm__sum_mod_hash(size_t *dest, const unsigned char *buf,
 //////////////////////////////////////////////////////rewrite and add compatibility for the linked hook table
 int sctm_unhook(struct sctm_hook *hook) {
   int retval;
-
-  if (hook == NULL)
-    return -EFAULT;
-  
-  if (hook->call >= SCTM_TABLE_SIZE)
-    return -EINVAL;
-
-  if (sctm__table[hook->call] == hook->hook
-      && hook->unhook_method == SCTM_UNHOOK_METHOD_REPLACE) {
-    /* replace with the original entry */
-
-    retval = sctm__set_syscall_handler(hook->call, hook->original);
-
-    if (retval)
-      return retval;
-  }
-  hook->hooked = 0;
+  ///////////////////////////////////////////////////
   return 0;
 }
 
-int sctm_unhook_all(void) {
+int sctm_unhook_all(void) {/////////////////////////////////////how will this coordinate removal with `sctm_unhook`?
   unsigned long call;
   struct sctm_hook_lstacki *iter;
   int retval;
   int _retval;
 
-  /* unhook as many hooks as possible */
+  /* unhook/deregister as many hooks as possible */
 
   for (call = retval = 0; call < SCTM_TABLE_SIZE; call++) {
     iter = sctm__hook_registry[call];
@@ -394,9 +378,7 @@ int sctm_unhook_all(void) {
         retval = _retval;
       kfree(iter->cur);
     }
-    
-    if (!IS_ERR_OR_NULL(iter->cur))
-      kfree(iter->cur);
+    iter->cur = iter->stack = NULL;
   }
   return 0;
 }
