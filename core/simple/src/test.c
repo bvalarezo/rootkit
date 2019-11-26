@@ -13,7 +13,7 @@
 struct sctm_hook my_hook;
 const char *my_name = "test";
 
-static void __exit my_exit(void) {
+void __exit my_exit(void) {
   printk(KERN_INFO "[%s]: In `my_exit` (%p).\n", my_name, &my_exit);
   sctm_exit();
 }
@@ -27,7 +27,7 @@ unsigned long my_hook_func(unsigned long arg0, unsigned long arg1,
     : -EINVAL;
 }
 
-static int __init my_init(void) {
+int __init my_init(void) {
   int retval;
   
   printk(KERN_INFO "[%s]: In `my_init` (%p).\n", my_name, &my_init);
