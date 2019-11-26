@@ -111,9 +111,11 @@ static int __init sctm__init(void) {
   if (retval)
     return retval;
 #ifdef SCTM_INIT_POST_HOOK
+printk("[sctm] post hook");
   /* call the post-initialization hook (if any) */
-
   return SCTM_INIT_POST_HOOK();
+#else
+printk("[sctm] no post hook");
 #endif
   return 0;
 }
