@@ -25,7 +25,7 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "ADF907D091D46D57BE3115E");
+MODULE_INFO(srcversion, "F34DDBE9BA306A1C678F7A3");
 /*
 Copyright (C) 2019 Bailey Defino
 <https://bdefino.github.io>
@@ -196,7 +196,7 @@ int sctm_unhook(struct sctm_hook *hook) {
   
   if (IS_ERR_OR_NULL(hook))
     return -EFAULT;
-  
+  printk(KERN_INFO "[sctm] got hook for call %lu", hook->call);
   if (hook->call >= SCTM_TABLE_SIZE)
     return -EINVAL;
   

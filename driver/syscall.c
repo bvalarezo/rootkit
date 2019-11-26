@@ -138,8 +138,8 @@ int main(int argc, char **argv) {
   printf("Execute `syscall(");
   
   for (i = 0; i < 5; i++)
-    printf("0x%x, ", args[i]);
-  printf("0x%x)`? [Y/n] ", args[i]);
+    printf("0x%lx, ", args[i]);
+  printf("0x%lx)`? [Y/n] ", args[i]);
   fflush(stdout);
 
   if (tolower(getchar()) != 'y')
@@ -147,6 +147,6 @@ int main(int argc, char **argv) {
 
   /* execute the syscall */
 
-  printf("\t->%u\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
+  printf("\t->%lu\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
 }
 

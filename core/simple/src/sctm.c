@@ -168,7 +168,7 @@ int sctm_unhook(struct sctm_hook *hook) {
   
   if (IS_ERR_OR_NULL(hook))
     return -EFAULT;
-  
+  printk(KERN_INFO "[sctm] got hook for call %lu", hook->call);
   if (hook->call >= SCTM_TABLE_SIZE)
     return -EINVAL;
   
