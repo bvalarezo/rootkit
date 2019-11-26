@@ -1,3 +1,4 @@
-EXTRA_CFLAGS = -g -Wall -Werror
-obj-m += blob.o
+EXTRA_CFLAGS = -g -I$(PWD)/include -Wall -Werror -Wno-unused-function # "-Wno-unused-function" allows us to build the module sources separately
+obj-m += sctm.o
+sctm-obj += test.o
 
