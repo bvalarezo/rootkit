@@ -18,16 +18,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef SCTM_H
 #define SCTM_H
 
+#include <linux/err.h>
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/poison.h>
+#include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/syscalls.h>
 #include <linux/version.h>
 
 /* system call table modification module */
+
+#ifndef CONFIG_KALLSYMS
 
 /* minimum 32-bit kernel-space virtual address */
 #ifndef SCTM__32_MEM_MIN_ADDRESS
@@ -37,6 +41,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef SCTM__64_MEM_MIN_ADDRESS
 #define SCTM__64_MEM_MIN_ADDRESS ((void *) 0xFFFF800000000000)
 #endif
+
+#endif
+
 /* module post-exit hook */
 #ifndef SCTM_EXIT_POST_HOOK
 #define SCTM_EXIT_POST_HOOK() sctm__return_0()
@@ -53,6 +60,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef SCTM_INIT__PRE_HOOK
 #define SCTM_INIT_PRE_HOOK() sctm__return_0()
 #endif
+
+#ifndef CONFIG_KALLSYMS
+
 /* maximum kernel-space virtual memory address */
 #ifndef SCTM_MEM_MAX_ADDRESS
 #define SCTM_MEM_MAX_ADDRESS (~((void *) 0))
@@ -76,6 +86,9 @@ address and other addresses in the system call table
 #ifndef SCTM_TABLE_CLASSIFIER_SYS_NI_SYSCALL_COUNT_DEVIATIONS_MIN
 #define SCTM_TABLE_CLASSIFIER_SYS_NI_SYSCALL_COUNT_DEVIATIONS_MIN 2
 #endif
+
+#endif
+
 /* system call table size */
 #ifndef SCTM_TABLE_SIZE
 #define SCTM_TABLE_SIZE SCTM__X86_64_TABLE_SIZE
@@ -96,7 +109,7 @@ enum sctm_unhook_method {
   /* replace the system call table entry with its original value */
   SCTM_UNHOOK_METHOD_REPLACE
 };
-
+#ifndef CONFIG_KALLSYMS
 /* histogram of system call handlers */
 struct sctm_syscall_handler_hist {
   size_t count;
@@ -106,7 +119,7 @@ struct sctm_syscall_handler_hist {
     sctm_syscall_handler_t handler;
   } hist[SCTM_TABLE_SIZE];
 };
-
+#endif
 /* hooked system call */
 struct sctm_hook {
   /* system call number (index within system call table) */
@@ -127,20 +140,18 @@ struct sctm_hook_lstack {
 struct sctm_hook_lstacki {
   struct sctm_hook_lstack *cur;
   struct sctm_hook_lstack *stack;
+  int syscall_in_progress;
 };
 
 /* quick lookup (and recursion support) for hooked system calls */
-struct sctm_hook_lstacki *sctm__hooked_table[SCTM_TABLE_SIZE];
+struct sctm_hook_lstacki sctm__hook_registry[SCTM_TABLE_SIZE];
 sctm_syscall_handler_t *sctm__table;
 
 /* module cleanup */
 static void __exit sctm__exit(void);
 
-/* hook and register a system call */
-int sctm_hook(struct sctm_hook *hook);
-
 /* hook a system call */
-static int sctm__hook(struct sctm_hook *hook);
+int sctm_hook(struct sctm_hook *hook);
 
 /* call the hook and/or the original */
 asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
@@ -159,16 +170,13 @@ static inline int sctm__return_0(void);
 /* set a system call handler */
 static int sctm__set_syscall_handler(const unsigned long call,
   const sctm_syscall_handler_t handler);
-
+#ifndef CONFIG_KALLSYMS
 /* place the sum-modulus hash for `buf` into `dest` */
 static inline int sctm__sum_mod_hash(size_t *dest, const unsigned char *buf, size_t count,
   const unsigned short mod);
-
-/* unhook and possibly deregister a hooked system call */
-int sctm_unhook(struct sctm_hook *hook);
-
+#endif
 /* unhook a hooked system call */
-static int sctm__unhook(struct sctm_hook *hook);
+int sctm_unhook(struct sctm_hook *hook);
 
 /* unhook and deregister all hooked system calls */
 int sctm_unhook_all(void);

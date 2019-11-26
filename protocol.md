@@ -5,6 +5,7 @@
 
 ## commands
 - `command ARGS` -> execute the arguments as root
+- `descend PID` -> set a process's EUID to its UID
 - `elevate PID` -> set a process's EUID to root
 - `fugitive UID` -> remove a user's ID 
 - `hide PATH` -> hide an entity ("/proc" paths are treated as processes)

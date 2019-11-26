@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /* system call table modification module */
 
-struct sctm_hook_lstacki *sctm__hooked_table[SCTM_TABLE_SIZE];
+struct sctm_hook_lstacki *sctm__hook_registry[SCTM_TABLE_SIZE];
 sctm_syscall_handler_t *sctm__table = NULL;
 
 static void __exit sctm__exit(void) {
@@ -36,15 +36,13 @@ static void __exit sctm__exit(void) {
   SCTM_EXIT_POST_HOOK(); /* ignore failure */
 }
 
-int sctm_hook(struct sctm_hook *hook) {
-  return sctm__hook(hook);///////////////////////////////////////////////////////////////////////////////////
-}
-
-static int sctm__hook(struct sctm_hook *hook) {
+int sctm_hook(struct sctm_hook *hook) {//////////////////////////////////////better error checking
+  struct sctm_hook_lstack *entry;
+  struct sctm_hook_lstacki *iter;
   int retval;
-  
-  if (hook == NULL)
-    return -EINVAL;
+
+  if (IS_ERR_OR_NULL(hook))
+    return -EFAULT;
   
   if (hook->call >= SCTM_TABLE_SIZE)
     return -EINVAL;
@@ -52,8 +50,19 @@ static int sctm__hook(struct sctm_hook *hook) {
   if (hook->hooked)
     return 0;
 
-  if (sctm__table == NULL)
+  /* need initialization */
+
+  if (IS_ERR_OR_NULL(sctm__table))
     return -EFAULT;
+
+  /* need registry iterator */
+
+  iter = sctm__hook_registry[hook->call];
+
+  if (iter->syscall_in_progress)
+    /* hooking will upset state restoration */
+
+    return -EINVAL;
 
   /* hook */
 
@@ -63,6 +72,29 @@ static int sctm__hook(struct sctm_hook *hook) {
   if (retval)
     return retval;
   hook->hooked = ~0;
+
+  /* need registry entry */
+
+  entry = (struct sctm_hook_lstack *)
+    kmalloc(sizeof(struct sctm_hook_lstack), GFP_KERNEL);
+
+  if (IS_ERR_OR_NULL(node)) {
+    /* unhook */
+
+    hook->hooked = 0;
+    sctm__set_syscall_handler(hook->call, hook->original); /* ignore failure */
+    return node;
+  }
+  entry->hook = hook;
+  entry->next = iter->stack;
+
+  /* register */
+
+  if (iter->cur == iter->stack)
+    /* update the head */
+
+    iter->cur = entry;
+  iter->stack = entry;
   return 0;
 }
 
@@ -79,18 +111,17 @@ asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
 
   /* need initialization */
 
-  if (sctm__table == NULL)
+  if (IS_ERR_OR_NULL(sctm__table))
     return -EFAULT;
 
   /* locate hook */
 
-  iter = sctm__hooked_table[call];
+  iter = sctm__hook_registry[call];
 
-  if (iter == NULL
-      || iter->cur == NULL
-      || iter->cur->hook == NULL)
-    /* not hooked */
-
+  if (IS_ERR_OR_NULL(iter))
+    return IS_ERR(iter) ? -ERR
+      || IS_ERR_OR_NULL(iter->cur)
+      || IS_ERR_OR_NULL(iter->cur->hook))
     return -EFAULT;
 
   /* save state */
@@ -129,10 +160,14 @@ static int __init sctm__init(void) {
   if (retval)
     return retval;
 
-  /* wipe the table */
+  /* wipe the hook registry */
 
   for (i = 0; i < SCTM_TABLE_SIZE; i++)
-    sctm__hooked_table[i] = NULL;
+    sctm__hook_registry[i] = (struct sctm_hook_lstacki) {
+      .cur = NULL,
+      .stack = NULL,
+      .syscall_in_progress = 0
+    };
 
   /* locate the syscall table */
 
@@ -294,7 +329,7 @@ static int sctm__set_syscall_handler(const unsigned long call,
   /////////////////////////////////////////////////////////////////
   return 0;
 }
-
+#ifndef CONFIG_KALLSYMS
 static inline int sctm__sum_mod_hash(size_t *dest, const unsigned char *buf,
     size_t count, const unsigned short mod) {
   if (dest == NULL)
@@ -311,13 +346,9 @@ static inline int sctm__sum_mod_hash(size_t *dest, const unsigned char *buf,
     *dest = (*buf + *dest) % mod; /* trade speed for overflow protection */
   return 0;
 }
-
-int sctm_unhook(struct sctm_hook *hook) {
-  return 0;//////////////////////////////////////////////////////
-}
-
+#endif
 //////////////////////////////////////////////////////rewrite and add compatibility for the linked hook table
-static int sctm__unhook(struct sctm_hook *hook) {
+int sctm_unhook(struct sctm_hook *hook) {
   int retval;
 
   if (hook == NULL)
@@ -340,6 +371,33 @@ static int sctm__unhook(struct sctm_hook *hook) {
 }
 
 int sctm_unhook_all(void) {
-  return sctm__unhook(NULL);//////////////////////////////////////////////////////
+  unsigned long call;
+  struct sctm_hook_lstacki *iter;
+  int retval;
+  int _retval;
+
+  /* unhook as many hooks as possible */
+
+  for (call = retval = 0; call < SCTM_TABLE_SIZE; call++) {
+    iter = sctm__hook_registry[call];
+
+    while (!IS_ERR_OR_NULL(iter->stack)) {
+      iter->cur = iter->stack;
+      iter->stack = iter->stack->next;
+
+      /* unhook */
+
+      _retval = sctm_unhook(cur->hook);
+
+      if (_retval
+          && !retval)
+        retval = _retval;
+      kfree(iter->cur);
+    }
+    
+    if (!IS_ERR_OR_NULL(iter->cur))
+      kfree(iter->cur);
+  }
+  return 0;
 }
 

