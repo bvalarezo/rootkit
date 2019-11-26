@@ -4,8 +4,11 @@
 #include <linux/printk.h>
 #include <linux/version.h>
 
+/* define these ASAP */
+
 #define SCTM_EXIT_POST_HOOK() my_exit()
 #define SCTM_INIT_POST_HOOK() my_init()
+
 #include "sctm.h"
 
 /* simple linux system call hook test using `sctm` */
