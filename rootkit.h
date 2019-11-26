@@ -3,6 +3,7 @@
 #endif
 
 #include <linux/errno.h>
+#include <linux/slab.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -39,7 +40,7 @@ PID_NODE *insert_pid_node(PID_NODE **head, PID_NODE *new_node);
 PID_NODE *find_pid_node(PID_NODE **head, pid_t pid);
 
 /* delete pid node by pid */
-void *delete_pid_node(PID_NODE **head, pid_t pid);
+void delete_pid_node(PID_NODE **head, PID_NODE *node);
 
 /* process escalation method */
 void process_escalate(pid_t pid);

