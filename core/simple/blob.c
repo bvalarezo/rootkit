@@ -217,3 +217,143 @@ int sctm_unhook_all(void) {
   return 0;
 }
 
+module_exit(sctm__exit);
+module_init(sctm__init);
+
+/*
+Copyright (C) 2019 Bailey Defino
+<https://bdefino.github.io>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+#ifndef SCTM_H
+#define SCTM_H
+
+#include <asm/paravirt.h>
+#include <linux/err.h>
+#include <linux/errno.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/mm.h>
+#include <linux/module.h>
+#include <linux/slab.h>
+#include <linux/string.h>
+#include <linux/syscalls.h>
+#include <linux/version.h>
+
+/* system call table modification module */
+
+/* system call table size */
+#ifndef SCTM_TABLE_SIZE
+#define SCTM_TABLE_SIZE SCTM__X86_64_TABLE_SIZE
+#endif
+/* system call table size on x86_64 */
+#ifndef SCTM__X86_64_TABLE_SIZE
+#define SCTM__X86_64_TABLE_SIZE 547
+#endif
+
+/* convenient type alias */
+typedef asmlinkage long (*sctm_syscall_handler_t)(unsigned long,
+  unsigned long, unsigned long, unsigned long, unsigned long, unsigned long);
+
+/* unhook methods */
+enum sctm_unhook_method {
+  /* disable the hook by instead calling the original */
+  SCTM_UNHOOK_METHOD_DISABLE,
+  /* replace the system call table entry with its original value */
+  SCTM_UNHOOK_METHOD_REPLACE
+};
+
+/* hooked system call */
+struct sctm_hook {
+  /* system call number (index within system call table) */
+  unsigned long call;
+  sctm_syscall_handler_t hook; /* hook function */
+  int hooked; /* flag for whether the hook should provide new functionality */
+  enum sctm_unhook_method unhook_method; /* how to unhook the system call */ 
+  sctm_syscall_handler_t original;
+};
+
+/* exit */
+void sctm_exit(void);
+
+/* hook a system call */
+int sctm_hook(struct sctm_hook *hook);
+
+/* initialization */
+int sctm_init(void);
+
+/* call the hook and/or the original */
+asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
+  unsigned long arg1, unsigned long arg2, unsigned long arg3,
+  unsigned long arg4);
+
+/* unhook a hooked system call */
+int sctm_unhook(struct sctm_hook *hook);
+
+/* unhook and deregister all hooked system calls */
+int sctm_unhook_all(void);
+
+#endif
+
+#include <linux/errno.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/printk.h>
+#include <linux/version.h>
+
+#define SCTM_EXIT_POST_HOOK() my_exit()
+#define SCTM_INIT_POST_HOOK() my_init()
+#include "sctm.h"
+
+/* simple linux system call hook test */
+
+struct sctm_hook my_hook;
+const char *my_name = "test";
+
+static void __exit my_exit(void) {
+  printk(KERN_INFO "[%s]: In `my_exit` (%p).", my_name, &my_exit);
+  sctm_exit();
+}
+
+unsigned long my_hook_func(unsigned long arg0, unsigned long arg1,
+    unsigned long arg2, unsigned long arg3, unsigned long arg4,
+    unsigned long arg5) {
+  printk(KERN_INFO "[%s]: In `my_hook_func` (%p).", my_name, &my_hook_func);
+  return my_hook.hooked
+    ? (*my_hook.original)(arg0, arg1, arg2, arg3, arg4, arg5)
+    : -EINVAL;
+}
+
+static int __init my_init(void) {
+  int retval;
+  
+  printk(KERN_INFO "[%s]: In `my_init` (%p).", my_name, &my_init);
+  my_hook = (struct sctm_hook) {
+    .call = 102, /* `sys_getuid` */
+    .hook = (sctm_syscall_handler_t) &my_hook_func,
+    .unhook_method = SCTM_UNHOOK_METHOD_REPLACE
+  };
+  retval = sctm_init();
+  
+  if (retval)
+    return retval;
+  return sctm_hook(&my_hook);
+}
+
+module_exit(my_exit)
+module_init(my_init)
+
+MODULE_LICENSE("GPL");
+

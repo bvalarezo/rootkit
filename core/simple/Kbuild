@@ -1,4 +1,0 @@
-EXTRA_CFLAGS = -g -Wall -Werror
-obj-m = test.o
-sctm-objs := ./src/sctm.o ./src/test.o
-
