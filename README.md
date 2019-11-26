@@ -1,54 +1,52 @@
-# rootkit
-CSE331 Project 1 
+# Hello World(Documentation of the module)
 
-Project 1: Linux Rootkit
-
-After attackers manage to gain access to a remote (or local) machine and elevate their privileges to "root", they typically want to maintain their access, while hiding their presence from the normal users and administrators of the system.
-
-In this project, you are asked to design and implement a basic rootkit for the Linux operating system (you can choose the exact distribution and kernel number). This rootkit should have the form of a loadable kernel module which when loaded into the kernel (by the attacker with root privileges) will do the following:
-
-    -Hide specific files and directories from showing up when a user does "ls" and similar commands (you have to come up with a protocol that allows attackers to change these)
-
-    -Modify the /etc/passwd and /etc/shadow file to add a backdoor account while returning the original contents of the files (pre-attack) when a normal user requests to see the file
-
-    -Hides specific processes from the process table when a user does a "ps"
-
-    -Give the ability to a malicious process to elevate its uid to 0 (root) upon demand (again this involves coming up with a protocol for doing that)
-
-Note that all of these should happen by intercepting the appropriate system calls in the Linux kernel and modifying the results. You should not perform the above by replacing the system binaries (like "ls", or "ps").
-
-=======================================================================
-We have to hijack the System Calls. We want to modify the SysCall Table to point to our malicious functions. 
-The backdoor account should not be affected by any of these modiications.
-
-First, we need to find the SysCall table 
-
-Find the index of the SysCalls that we want to replace to perform the above goals.
-
-Create a functon that replaces these SysCalls while holding the pointer to the original SysCall function.
-
-Protocol to communicate to the module:
-    - Create a new SysCall (SysCall index n in the SysCall table) with the module installation which will point to a function that we define that will handle communication to the module.
-    - Only the backdoor account should be able to successully execute the new SysCall.
+How to install the module:
+    - sudo insmod rootkit.ko (If you are using kernel 4.15.0-45-generic (default on ubuntu 16.04); otherwise do make clean all to recompile the module)
+How to remove the module:
+    - sudo rmmod rootkit
     
-For first time installation:
-    - We are assumed to have root access.
-    - Rootkit will create a backdoor account on installation, switch to the new backdoor account (via "su backdooraccount"), and print out "Syscall N".
- 
-Subsequent accesses to the compromised system:
-    - Log in via through the backdoor account.
-    
-SysCall N:
-    - Potentially prompt attacker "What do you want to do?"
-        - Hide speciic files
-        - Hide processes from the process table
-        - Control privilege execution for processes
-        - Delete itself on uninstallation
-    - Lists all of the files and processes already hidden
-        - Directory that contains two directories
-            - One for processes and one for filepaths
+How to use the hide files from ls/tree part of the module:
+- Name your file with the prefix @evil@ and it will be hidden.
 
-======================================================================================================================
-Misc. Specifications:
-- Kernel Version Choice: Doesn't matter
-- Potentially add a new module to handle the direct calling of syscalls.
+How to use the hide processes part of the module with the driver:
+
+- Assuming the driver was compiled with the name syscall:
+    - ./syscall 82 @@evil@(processname) @@evil@(action)
+        - Action can be one of the following:
+            - addEntry 
+                - Will return 0 if successful or -ENOMEM if the arraylist could not resize due to full array or memory for the arraylist could not be allocated at the initialization phase of the module
+            - removeEntry
+                - Will return 0 on successful removal or if the entry does not exist.
+- The module will also hide by default any processes that start with the prefix @evil@.
+
+Examples:
+- If we want to hide bash from ps:
+    - ./syscall 82 @@evil@bash @@evil@addEntry
+- If we want to show bash in ps:
+    - ./syscall 82 @@evil@bash @@evil@removeEntry
+- If we want to hide and create process called weewoo from ps without using the driver:
+    - nano @evil@weewoo.sh
+    - To make this visible again just rename the file and remove the @evil@ prefix.
+- If we want to create and hide a file called somefilename from ls/tree:
+    - nano @evil@somefilename
+    
+Implementation details of process hiding:
+- The module hooks the syscall rename which is 82 in Ubuntu 16.04. Although this shouldn't change across systems, you may need to find the system call number of rename which can be found in dmesg or kern.log.   
+
+- If the driver passes in null values for the strings or the strings do not contain the prefix, it will default to the original functionality of rename.
+    - Because of this, the filenames @evil@addEntry and @evil@removeEntry are not recommended to be used and will not be able to be renamed.
+
+- Whenever a user uses ps or top/htop, the syscall getdents is used to obtain a list of files/directories in /proc.
+    - Directories in /proc are named an integer number which corresponds to the pid of the process. 
+
+- The getdents syscall hook will check if the current process is calling getdents on /proc and then will proceed to do the following:
+    - Get the name of the directory listing in the structure of directories.
+        - The structure of directories essentially functions as a linked list where we have to use offsets instead of pointers to next and back.
+    - Obtain process information based on integer obtained from the directory name.
+    - Check if the process name is in the arraylist of processes to hide or if the processname has the prefix @evil@.
+        - It's important to note that process names are limited to 15 characters and thus the comparison will only check the first 15 characters.
+    - Remove the directory entry by shifting the entries down and change the number of bytes read in the return value.
+
+Implementation details of file hiding:
+- It essentially works the same as process hiding except it checks if the directory name contains the @evil@ prefix and then does the same shiting of directory entries down etc.
+- No other processing of the directory name is needed.
