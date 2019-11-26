@@ -63,8 +63,14 @@ struct sctm_hook {
   sctm_syscall_handler_t original;
 };
 
+/* exit */
+void sctm_exit(void);
+
 /* hook a system call */
 int sctm_hook(struct sctm_hook *hook);
+
+/* initialization */
+int sctm_init(void);
 
 /* call the hook and/or the original */
 asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
@@ -76,8 +82,6 @@ int sctm_unhook(struct sctm_hook *hook);
 
 /* unhook and deregister all hooked system calls */
 int sctm_unhook_all(void);
-
-MODULE_LICENSE("GPL");
 
 #endif
 

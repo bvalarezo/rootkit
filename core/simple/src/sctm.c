@@ -29,7 +29,7 @@ static int sctm__locate_sys_call_table(void);
 static int sctm__set_syscall_handler(const unsigned long call,
   const sctm_syscall_handler_t handler);
 
-static void __exit sctm__exit(void) {
+void sctm_exit(void) {
 #ifdef SCTM_EXIT_PRE_HOOK
   /* call the pre-exit hook (if any) */
 
@@ -88,7 +88,7 @@ int sctm_hook(struct sctm_hook *hook) {
   return 0;
 }
 
-static int __init sctm__init(void) {
+int sctm_init(void) {
   int call;
   int retval;
 #ifdef SCTM_INIT_PRE_HOOK

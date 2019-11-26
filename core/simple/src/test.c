@@ -1,5 +1,8 @@
 #include <linux/errno.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/printk.h>
+#include <linux/version.h>
 
 #define SCTM_EXIT_POST_HOOK() my_exit()
 #define SCTM_INIT_POST_HOOK() my_init()
@@ -10,10 +13,11 @@
 struct sctm_hook my_hook;
 const char *my_name = "test";
 
-extern int sctm_hook(struct sctm_hook *);
+//extern int sctm_hook(struct sctm_hook *);
 
 void my_exit(void) {
   printk(KERN_INFO "[%s]: In `my_exit` (%p).", my_name, &my_exit);
+  sctm_exit();
 }
 
 unsigned long my_hook_func(unsigned long arg0, unsigned long arg1,
@@ -25,13 +29,21 @@ unsigned long my_hook_func(unsigned long arg0, unsigned long arg1,
     : -EINVAL;
 }
 
-void my_init(void) {
+int __init my_init(void) {
+  int retval;
+  
   printk(KERN_INFO "[%s]: In `my_init` (%p).", my_name, &my_init);
   my_hook = (struct sctm_hook) {
     .call = 102, /* `sys_getuid` */
     .hook = (sctm_syscall_handler_t) &my_hook_func,
     .unhook_method = SCTM_UNHOOK_METHOD_REPLACE
   };
-  sctm_hook(&my_hook);
+  retval = sctm_init();
+  
+  if (retval)
+    return retval;
+  return sctm_hook(&my_hook);
 }
+
+MODULE_LICENSE("GPL");
 
