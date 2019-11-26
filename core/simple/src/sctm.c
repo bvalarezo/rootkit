@@ -111,11 +111,9 @@ int sctm_init(void) {
   if (retval)
     return retval;
 #ifdef SCTM_INIT_POST_HOOK
-printk("[sctm] post hook");
   /* call the post-initialization hook (if any) */
+ 
   return SCTM_INIT_POST_HOOK();
-#else
-printk("[sctm] no post hook");
 #endif
   return 0;
 }
@@ -168,7 +166,7 @@ int sctm_unhook(struct sctm_hook *hook) {
   
   if (IS_ERR_OR_NULL(hook))
     return -EFAULT;
-  printk(KERN_INFO "[sctm] got hook for call %lu", hook->call);
+
   if (hook->call >= SCTM_TABLE_SIZE)
     return -EINVAL;
   
