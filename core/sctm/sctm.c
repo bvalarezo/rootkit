@@ -98,9 +98,9 @@ int sctm_hook(struct sctm_hook *hook) {//////////////////////////////////////bet
   return 0;
 }
 
-asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
-    unsigned long arg1, unsigned long arg2, unsigned long arg3,
-    unsigned long arg4) {
+asmlinkage long sctm__hook_wrapper(unsigned long arg0, unsigned long arg1,
+    unsigned long arg2, unsigned long arg3, unsigned long arg4,
+    unsigned long arg5) {
   struct sctm_hook_lstack *cur;
   struct sctm_hook *hook;
   struct sctm_hook_lstacki *iter;
@@ -139,9 +139,9 @@ asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
 
   if (hook->hooked) {
     if (hook->hook != NULL)
-      retval = (*hook->hook)(call, arg0, arg1, arg2, arg3, arg4);
+      retval = (*hook->hook)(arg0, arg1, arg2, arg3, arg4, arg5);
   } else if (hook->original != NULL)
-    retval = (*hook->original)(call, arg0, arg1, arg2, arg3, arg4);
+    retval = (*hook->original)(arg0, arg1, arg2, arg3, arg4, arg5);
   
   /* restore state */
 

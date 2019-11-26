@@ -18,9 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef SCTM_H
 #define SCTM_H
 
-#include <asm/page.h>
-#include <linux/printk.h> /* must be included before "asm/set_memory" */
-#include <asm/set_memory.h>
+#include <asm/paravirt.h>
 #include <linux/err.h>
 #include <linux/errno.h>
 #include <linux/init.h>
@@ -34,22 +32,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /* system call table modification module */
 
-/* module post-exit hook */
-#ifndef SCTM_EXIT_POST_HOOK
-#define SCTM_EXIT_POST_HOOK() sctm__return_0()
-#endif
-/* module pre-exit hook */
-#ifndef SCTM_EXIT_PRE_HOOK
-#define SCTM_EXIT_PRE_HOOK() sctm__return_0()
-#endif
-/* module post-initialization hook (return success) */
-#ifndef SCTM_INIT_POST_HOOK
-#define SCTM_INIT_POST_HOOK() sctm__return_0()
-#endif
-/* module pre-initialization hook (return success) */
-#ifndef SCTM_INIT__PRE_HOOK
-#define SCTM_INIT_PRE_HOOK() sctm__return_0()
-#endif
 /* system call table size */
 #ifndef SCTM_TABLE_SIZE
 #define SCTM_TABLE_SIZE SCTM__X86_64_TABLE_SIZE
@@ -81,12 +63,6 @@ struct sctm_hook {
   sctm_syscall_handler_t original;
 };
 
-struct sctm_hook *sctm__hook_registry[SCTM_TABLE_SIZE];
-sctm_syscall_handler_t *sctm__table;
-
-/* module cleanup */
-static void __exit sctm__exit(void);
-
 /* hook a system call */
 int sctm_hook(struct sctm_hook *hook);
 
@@ -95,19 +71,6 @@ asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
   unsigned long arg1, unsigned long arg2, unsigned long arg3,
   unsigned long arg4);
 
-/* module initialization */
-static int __init sctm__init(void);
-
-/* locate the system call table */
-static int sctm__locate_sys_call_table(void);
-
-/* return 0 (compiler workaround) */
-static inline int sctm__return_0(void);
-
-/* set a system call handler */
-static int sctm__set_syscall_handler(const unsigned long call,
-  const sctm_syscall_handler_t handler);
-
 /* unhook a hooked system call */
 int sctm_unhook(struct sctm_hook *hook);
 
@@ -115,9 +78,6 @@ int sctm_unhook(struct sctm_hook *hook);
 int sctm_unhook_all(void);
 
 MODULE_LICENSE("GPL");
-
-module_exit(sctm__exit);
-module_init(sctm__init);
 
 #endif
 

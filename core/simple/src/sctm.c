@@ -22,18 +22,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 struct sctm_hook *sctm__hook_registry[SCTM_TABLE_SIZE];
 sctm_syscall_handler_t *sctm__table = NULL;
 
+/* locate the system call table */
+static int sctm__locate_sys_call_table(void);
+
+/* set a system call handler */
+static int sctm__set_syscall_handler(const unsigned long call,
+  const sctm_syscall_handler_t handler);
+
 static void __exit sctm__exit(void) {
+#ifdef SCTM_EXIT_PRE_HOOK
   /* call the pre-exit hook (if any) */
 
   SCTM_EXIT_PRE_HOOK(); /* ignore failure */
-
+#endif
   /* unhook all hooked system calls (and ignore failure) */
 
   sctm_unhook_all();
-
+#ifdef SCTM_EXIT_POST_HOOK
   /* call the post-exit hook (if any) */
 
   SCTM_EXIT_POST_HOOK(); /* ignore failure */
+#endif
 }
 
 int sctm_hook(struct sctm_hook *hook) {
@@ -82,14 +91,14 @@ int sctm_hook(struct sctm_hook *hook) {
 static int __init sctm__init(void) {
   int call;
   int retval;
-
+#ifdef SCTM_INIT_PRE_HOOK
   /* call the pre-initialization hook (if any) */
 
   retval = SCTM_INIT_PRE_HOOK();
 
   if (retval)
     return retval;
-
+#endif
   /* wipe the hook registry */
 
   for (call = 0; call < SCTM_TABLE_SIZE; call++)
@@ -101,10 +110,12 @@ static int __init sctm__init(void) {
 
   if (retval)
     return retval;
-
+#ifdef SCTM_INIT_POST_HOOK
   /* call the post-initialization hook (if any) */
 
   return SCTM_INIT_POST_HOOK();
+#endif
+  return 0;
 }
 
 static int sctm__locate_sys_call_table(void) {
@@ -117,15 +128,8 @@ static int sctm__locate_sys_call_table(void) {
   return IS_ERR_OR_NULL(sctm__table) ? -EFAULT : 0;
 }
 
-static inline int sctm__return_0(void) {
-  return 0;
-}
-
 static int sctm__set_syscall_handler(const unsigned long call,
     const sctm_syscall_handler_t handler) {
-  unsigned long page;
-  int retval;
-  
   if (call >= SCTM_TABLE_SIZE)
     return -EINVAL;
   
@@ -143,13 +147,9 @@ static int sctm__set_syscall_handler(const unsigned long call,
   if (IS_ERR(sctm__table))
     return -EINVAL;
   
-  /* need page */
-  
-  page = (unsigned long) (PAGE_ALIGN((unsigned long) sctm__table) - PAGE_SIZE);
-  
   /* enable writing */
   
-  retval = set_memory_rw(page, 1);
+  write_cr0(read_cr0() & ~X86_CR0_WP);
   
   /* overwrite */
   
@@ -157,8 +157,8 @@ static int sctm__set_syscall_handler(const unsigned long call,
   
   /* disable writing */
   
-  retval = set_memory_ro(page, 1);
-  return retval;
+  write_cr0(read_cr0() | X86_CR0_WP);
+  return 0;
 }
 
 int sctm_unhook(struct sctm_hook *hook) {
@@ -214,4 +214,7 @@ int sctm_unhook_all(void) {
   }
   return 0;
 }
+
+module_exit(sctm__exit);
+module_init(sctm__init);
 

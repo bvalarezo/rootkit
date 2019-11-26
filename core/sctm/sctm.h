@@ -154,9 +154,9 @@ static void __exit sctm__exit(void);
 int sctm_hook(struct sctm_hook *hook);
 
 /* call the hook and/or the original */
-asmlinkage long sctm__hook_wrapper(unsigned long call, unsigned long arg0,
-  unsigned long arg1, unsigned long arg2, unsigned long arg3,
-  unsigned long arg4);
+asmlinkage long sctm__hook_wrapper(unsigned long arg0, unsigned long arg1,
+  unsigned long arg2, unsigned long arg3, unsigned long arg4,
+  unsigned long arg5);
 
 /* module initialization */
 static int __init sctm__init(void);
