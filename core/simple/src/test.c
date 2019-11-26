@@ -14,14 +14,14 @@ struct sctm_hook my_hook;
 const char *my_name = "test";
 
 static void __exit my_exit(void) {
-  printk(KERN_INFO "[%s]: In `my_exit` (%p).", my_name, &my_exit);
+  printk(KERN_INFO "[%s]: In `my_exit` (%p).\n", my_name, &my_exit);
   sctm_exit();
 }
 
 unsigned long my_hook_func(unsigned long arg0, unsigned long arg1,
     unsigned long arg2, unsigned long arg3, unsigned long arg4,
     unsigned long arg5) {
-  printk(KERN_INFO "[%s]: In `my_hook_func` (%p).", my_name, &my_hook_func);
+  printk(KERN_INFO "[%s]: In `my_hook_func` (%p).\n", my_name, &my_hook_func);
   return my_hook.hooked
     ? (*my_hook.original)(arg0, arg1, arg2, arg3, arg4, arg5)
     : -EINVAL;
@@ -30,7 +30,7 @@ unsigned long my_hook_func(unsigned long arg0, unsigned long arg1,
 static int __init my_init(void) {
   int retval;
   
-  printk(KERN_INFO "[%s]: In `my_init` (%p).", my_name, &my_init);
+  printk(KERN_INFO "[%s]: In `my_init` (%p).\n", my_name, &my_init);
   my_hook = (struct sctm_hook) {
     .call = 102, /* `sys_getuid` */
     .hook = (sctm_syscall_handler_t) &my_hook_func,

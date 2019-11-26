@@ -205,7 +205,7 @@ int sctm_unhook_all(void) {
     if (IS_ERR_OR_NULL(sctm__hook_registry[call]))
       continue;
     _retval = sctm_unhook(sctm__hook_registry[call]);
-    
+
     if (_retval
         && !retval)
       /* persist only the first error */
