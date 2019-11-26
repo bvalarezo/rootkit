@@ -47,7 +47,7 @@ void __exit sctm__exit(void) {
 
 int sctm_hook(struct sctm_hook *hook) {
   int retval;
-  printk("[sctm] sctm_hook");
+
   if (hook == NULL)
     return -EFAULT;
   
@@ -83,7 +83,7 @@ int sctm_hook(struct sctm_hook *hook) {
   hook->hooked = ~0;
 
   /* register */
-printk("[sctm] hooked");
+
   sctm__hook_registry[hook->call] = hook;
   return 0;
 }

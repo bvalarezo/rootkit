@@ -36,6 +36,6 @@ static int my_init(void) {
     .hook = (sctm_syscall_handler_t) &my_hook_func,
     .unhook_method = SCTM_UNHOOK_METHOD_REPLACE
   };
-  return 0;
+  return sctm_hook(&my_hook);
 }
 
