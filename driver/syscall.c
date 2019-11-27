@@ -70,18 +70,17 @@ int htoul(unsigned long *dest, const char *a) {
 
   if (dest == NULL)
     return -EFAULT;
-  a += 2; /* ignore prefix */
 
   /* read into dest */
 
   *dest = 0;
 
-  for (i = strlen(a) - 1, shift = 0; i >= 0; i--, shift += 4) {
+  for (i = strlen(a) - 1, shift = 0; i >= 2; i--, shift += 4) {
     retval = hton(&c, a[i]);
 
     if (retval)
       return retval;
-    *dest |= c << shift;
+    *dest |= ((unsigned long) c) << shift;
   }
   return 0;
 }
