@@ -55,7 +55,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   iface_command_handler_t handler;
   unsigned int i;
 
-  //printk(KERN_INFO "[rootkit interface]: In `iface__hook_func` (%p).\n", &iface_hook_func);////////////
+  printk(KERN_INFO "[rootkit interface]: `iface__hook_func(0x%lx, ...)`.\n", secret);////////////
   
   if (!iface__hook.hooked)
     return -EINVAL;
