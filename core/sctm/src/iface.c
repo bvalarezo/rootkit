@@ -61,7 +61,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   /* need correct secret */
 
   if (secret != iface__secret)
-    return (*iface__hook.original)_(secret, (unsigned long) command, arg0,
+    return (*iface__hook.original)(secret, (unsigned long) command, arg0,
       arg1, arg2, arg3);
 
   /*
