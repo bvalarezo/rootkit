@@ -32,12 +32,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /* include compile-time definitions */
 #ifdef SCTM_INCLUDE
-#undef SCTM__INCLUDE_JOIN
 #undef SCTM__INCLUDE_STRINGIFY
+#undef SCTM__INCLUDE__STRINGIFY_LITERAL
 
-#define SCTM__INCLUDE_JOIN(a, b) SCTM__INCLUDE_STRINGIFY(a/b)
-#define SCTM__INCLUDE_STRINGIFY(v) #v
-#include SCTM__INCLUDE_JOIN(., SCTM_INCLUDE)
+#define SCTM__INCLUDE_STRINGIFY(v) SCTM__INCLUDE__STRINGIFY_LITERAL(./v)
+#define SCTM__INCLUDE__STRINGIFY_LITERAL(v) #v
+
+#include SCTM__INCLUDE_STRINGIFY(SCTM_INCLUDE)
+
+#undef SCTM__INCLUDE_STRINGIFY
+#undef SCTM__INCLUDE__STRINGIFY_LITERAL
 #endif
 
 /* system call table modification module */
