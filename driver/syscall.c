@@ -1,3 +1,20 @@
+/*
+Copyright (C) 2019 Bailey Defino
+<https://bdefino.github.io>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -45,7 +62,7 @@ int htoul(unsigned long *dest, const char *a) {
     return -EFAULT;
 
   if (strlen(a) < 2
-      || strlen(a) > 2 + sizeof(*dest)
+      || strlen(a) > 2 + 2 * sizeof(*dest)
       || *a != '0'
       || (a[1] != 'X'
         && a[1] != 'x'))
@@ -53,18 +70,17 @@ int htoul(unsigned long *dest, const char *a) {
 
   if (dest == NULL)
     return -EFAULT;
-  a += 2; /* ignore prefix */
 
   /* read into dest */
 
   *dest = 0;
 
-  for (i = strlen(a) - 1, shift = 0; i >= 0; i--, shift += 4) {
+  for (i = strlen(a) - 1, shift = 0; i >= 2; i--, shift += 4) {
     retval = hton(&c, a[i]);
 
     if (retval)
       return retval;
-    *dest |= c << shift;
+    *dest |= ((unsigned long) c) << shift;
   }
   return 0;
 }
@@ -96,7 +112,12 @@ int main(int argc, char **argv) {
         return 1;
       }
     } else if (*argv[i] == '@') {
-      /* got string classification prefix (mnemonic: "@" for array) */
+      /*
+      got string classification prefix (mnemonic: "@" for array)
+
+      unfortunately, we need this prefix,
+      especially when considering whether "0" is a string or an array
+      */
 
       args[i - 1] = (unsigned long) &argv[i][1];
     } else {
@@ -116,8 +137,8 @@ int main(int argc, char **argv) {
   printf("Execute `syscall(");
   
   for (i = 0; i < 5; i++)
-    printf("0x%x, ", args[i]);
-  printf("0x%x)`? [Y/n] ", args[i]);
+    printf("0x%lx, ", args[i]);
+  printf("0x%lx)`? [Y/n] ", args[i]);
   fflush(stdout);
 
   if (tolower(getchar()) != 'y')
@@ -125,6 +146,6 @@ int main(int argc, char **argv) {
 
   /* execute the syscall */
 
-  printf("\t->%u\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
+  printf("\t->0x%lx\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
 }
 
