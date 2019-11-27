@@ -90,7 +90,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
 
     return (*handler)(arg0, arg1, arg2, arg3);
 printk(KERN_INFO "[rootkit]: here\n");
-  return -EINVAL;
+  return EINVAL;
 }
 
 int iface_init(void) { 
