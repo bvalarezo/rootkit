@@ -31,12 +31,8 @@
 
 [ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
 CALL="$1"
-COMMAND=command # execute a system command
-
-if [ ! -z "$3" ]
-then
-  COMMAND="$3"
-fi
+[ -z "$3" ] && echo "Expected a command." >&2 && exit 1
+COMMAND="$3"
 [ -z "$2" ] && echo "Expected a secret." >&2 && exit 1
 SECRET="$2"
 REST_LEN=`echo -n "${CALL} ${SECRET} ${COMMAND}" | wc -c`

