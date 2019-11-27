@@ -40,5 +40,5 @@ fi
 SECRET="$2"
 REST_LEN=`echo -n "${CALL} ${SECRET} ${COMMAND}" | wc -c`
 REST=`echo -n "$@" | cut "-c$(( ${REST_LEN} + 1 ))-"`
-./syscall "${CALL}" "@${SECRET}" "@${COMMAND}" ${REST}
+./syscall "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
 
