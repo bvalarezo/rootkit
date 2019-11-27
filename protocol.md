@@ -1,5 +1,5 @@
-# protocol
-## license
+# Protocol
+## License
 Copyright 2019 Bailey Defino
 <https://bdefino.github.io>
 
@@ -16,11 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-## overview
+## Overview
 1. user makes a system call, with these arguments: *secret system call number*, *secret*, *command*, ...
 2. module intercepts the system call, and checks that the secret is accurate before evaluating the command
 
-## commands
+## Commands
 - `command ARGS` -> execute the arguments as root
 - `drop PID` -> set a process's EUID to its UID
 - `elevate PID` -> set a process's EUID to root

@@ -1,4 +1,21 @@
 # README
+## License
+Copyright 2019 Bailey Defino
+<https://bdefino.github.io>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ## Extending the Base Code
 The base code is meant to be extended, in fact:
 it barely does anything on its own.
@@ -17,27 +34,23 @@ and the other 2 are called before the module is unloaded.
 Using `sctm`, this boils down to 3 basic steps:
 1. represent your system call handler as `struct sctm_hook`
 2. write an initialization function to call `sctm_hook` with your handler
+and
 3. define `SCTM_INIT_POST_HOOK` to a function or function-like macro containing the hooking code.
 
-e.g.
-```
-/* simple code to hook a system call using `sctm` */
+See "./src/test.c" for a full example.
 
-#define SCTM_INIT_POST_HOOK() my_init()
+### Building `sctm`
+A few quirks of the `Kbuild` process make this a bit finnicky:
+declarations/definitions must occur in a very specific context and order.
+The easiest solution is to include necessary definitions ASAP,
+include all source files in a blob, and compile the blob.
+If defining any of the `SCTM_*_HOOK` functions,
+the following must be done:
+1. definitions (including for the initialization hook function)
+  MUST be in a separate header file
+and
+2. `SCTM_INCLUDE` MUST be defined at compile time
+  (this can be done by modifying the `INCLUDE_FIRST` definition in "./src/Kbuild")
 
-unsigned long my_hook_func(void) {
-  return 0; /* r0073d */
-}
-
-struct sctm_hook my_hook = {
-  .call = 102, /* `getuid` */
-  .hook = (sctm_syscall_handler_t) &my_hook_func,
-  .unhook_method = SCTM_UNHOOK_METHOD_REPLACE /* `SCTM_UNHOOK_METHOD_DISABLE` is preferable if we don't anticipate unloading the module */
-};
-
-void my_init() {
-  printk(sctm_hook(&my_hook) ? KERN_WARN "Failed to add `my_hook`." : KERN_MSG "Added `my_hook`.");
-}
-
-```
+See "./include/test.h", "./src/test.Kbuild", and "test.Makefile" for full examples.
 
