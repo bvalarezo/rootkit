@@ -58,7 +58,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   char command_buf[100]; /* easier than `kmalloc`ing */
   iface_command_handler_t handler;
   unsigned int i;
-  long retval;
+  int retval;
   
   if (!iface__hook.hooked)
     return EINVAL;
