@@ -1,0 +1,4 @@
+INCLUDE_FIRST := rootkit.h
+EXTRA_CFLAGS = -DSCTM_INCLUDE="$(INCLUDE_FIRST)" -g "-I$(PWD)/include" -Wall -Werror -Wno-unused-function # "-Wno-unused-function" allows us to build the module sources separately
+obj-m += blob.o
+
