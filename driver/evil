@@ -29,7 +29,7 @@
 [ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
 [ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
 [ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
-CALL="$1" # 102 is a good value for x86_64 Linux
-NUMERIC_SECRET=0xDEADBEF0 # 0xDEAFBEF0 (~0xDEADBEEF) is a good value
-./driver "${CALL}" "${NUMERIC_SECRET}" $@
+CALL=157 # `sys_prctl` is a good one for x86_64 Linux (just make sure the secret is > ~((int) 0)
+SECRET=0xDEADBEEFDEADBEEF
+./driver "${CALL}" "${SECRET}" $@
 
