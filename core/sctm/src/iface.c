@@ -10,7 +10,7 @@ struct iface_command {
   iface_command_handler_t handler;
 };
 
-static struct iface_command iface__commands[7] = {
+static struct iface_command iface__commands[] = {
   (struct iface_command) {
     .command = "drop",
     .handler = (iface_command_handler_t) &drop
