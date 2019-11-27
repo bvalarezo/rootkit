@@ -146,6 +146,6 @@ int main(int argc, char **argv) {
 
   /* execute the syscall */
 
-  printf("\t->%lu\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
+  printf("\t->0x%lx\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
 }
 
