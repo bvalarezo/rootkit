@@ -62,7 +62,7 @@ int htoul(unsigned long *dest, const char *a) {
     return -EFAULT;
 
   if (strlen(a) < 2
-      || strlen(a) > 2 + sizeof(*dest)
+      || strlen(a) > 2 + 2 * sizeof(*dest)
       || *a != '0'
       || (a[1] != 'X'
         && a[1] != 'x'))
