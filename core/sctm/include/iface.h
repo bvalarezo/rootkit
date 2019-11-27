@@ -4,7 +4,6 @@
 #include <linux/errno.h>
 #include <linux/printk.h>//////////////////////debugging
 
-#include "command.h"
 #include "elevate.h"
 #include "ghost.h"
 #include "hide.h"

