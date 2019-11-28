@@ -39,17 +39,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /* rootkit */
 
-//#define SCTM_INIT_POST_HOOK() rootkit_init()
-
 #ifdef DEBUG
 #undef ROOTKIT_DEBUG
-#undef ROOTKIT__DEBUG_BASE
 #undef ROOTKIT_ERROR
 #undef ROOTKIT_NAME
 
-#define ROOTKIT_DEBUG(...) ROOTKIT__DEBUG_BASE(KERN_INFO, __VA_ARGS__)
-#define ROOTKIT__DEBUG_BASE(p, ...) printk(p "[" #ROOTKIT_NAME "]: " __VA_ARGS__)
-#define ROOTKIT_ERROR(...) ROOTKIT__DEBUG_BASE(KERN_WARNING, __VA_ARGS__)
+#define ROOTKIT_DEBUG(v) printk(KERN_INFO "[" #ROOTKIT_NAME "]: " v)
+#define ROOTKIT_ERROR(v) printk(KERN_WARNING "[" #ROOTKIT_NAME "]: " v)
 #define ROOTKIT_NAME "rootkit"
 #endif
 

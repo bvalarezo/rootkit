@@ -18,6 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef SCTM_H
 #define SCTM_H
 
+#ifndef CONFIG_KALLSYMS
+#error "Need `kallsyms`."
+#endif
+
 #include <linux/err.h>
 #include <linux/errno.h>
 #include <asm/paravirt.h>
