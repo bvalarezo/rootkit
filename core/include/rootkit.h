@@ -48,7 +48,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #undef ROOTKIT_NAME
 
 #define ROOTKIT_DEBUG(v) ROOTKIT__DEBUG__BASE(KERN_INFO, (v))
-#define ROOTKIT__DEBUG__BASE(p, v) printk(p "[" ROOTKIT__NAME "]: " v)
+#define ROOTKIT__DEBUG__BASE(p, v) printk(p "["ROOTKIT_NAME"]: " v)
 #define ROOTKIT_ERROR(v) ROOTKIT__DEBUG__BASE(KERN_WARNING, (v))
 #define ROOTKIT_NAME "rootkit"
 #endif
