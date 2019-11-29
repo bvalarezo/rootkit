@@ -30,7 +30,7 @@ int hide(const char __user *path) {
   result = strncpy_from_user(_path, path, PATH_MAX);
   printk("here\n");
   if (result) {
-  printk("%lx\n", result);
+  printk("%d\n", result);
     kfree(_path);
     return result < 0 ? -result : result;
   }
