@@ -44,7 +44,7 @@ typedef struct linux_dirent{
 } linux_dirent;
 
 /* hide a directory entry */
-int hide(const char *path);
+int hide(const char __user *path);
 
 int hide_exit(void);
 
@@ -56,7 +56,7 @@ static asmlinkage int new_execve(const char *pathname, char *const argv[], char 
 static asmlinkage int new_rename(const char* pathname, const char* action);
 
 /* show a directory entry */
-int show(const char *path);
+int show(const char __user *path);
 
 #endif
 

