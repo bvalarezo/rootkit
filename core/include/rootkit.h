@@ -46,7 +46,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #undef ROOTKIT_ERROR
 #undef ROOTKIT_NAME
 
-/* to do this cleanly, we're forced to use C99 variadic macros */
+/*
+to do this cleanly, we're forced to use C99 variadic macros
+
+some credit to Eugene Stark for some of these quirks
+*/
 
 #define ROOTKIT_DEBUG(...) ROOTKIT__DEBUG_BASE(KERN_INFO, __VA_ARGS__)
 #define ROOTKIT__DEBUG_BASE(p, f, ...) do { \

