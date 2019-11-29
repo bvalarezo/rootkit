@@ -24,15 +24,16 @@ int hide(const char __user *path) {
   if (path == NULL)
     return EFAULT;
   _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
-
+  printk("here\n");
   if (IS_ERR_OR_NULL(_path))
     return ENOMEM;
   result = strncpy_from_user(_path, path, sizeof(_path));
-  
+  printk("here\n");
   if (result) {
     kfree(_path);
     return result < 0 ? -result : result;
-  }printk("%s:%u: got %s\n", __FILE__, __LINE__, _path);
+  }
+  printk("here\n");
   tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
