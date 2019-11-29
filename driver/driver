@@ -43,7 +43,7 @@ then
     then
       # it's likely a process; delegate
 
-      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@${_PATH}"
+      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@`echo -n \"${PATH}\" | cut -c6-`"
     elif [ "${COMMAND}" = hide ]
     then
       # hide via rename
