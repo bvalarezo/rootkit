@@ -46,6 +46,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #undef ROOTKIT_ERROR
 #undef ROOTKIT_NAME
 
+/* to do this cleanly, we're forced to use C99 variadic macros */
+
 #define ROOTKIT_DEBUG(...) ROOTKIT__DEBUG_BASE(KERN_INFO, __VA_ARGS__)
 #define ROOTKIT__DEBUG_BASE(p, f, ...) do { \
     printk(p "[" ROOTKIT_NAME ":%s:%d]: " f, __FILE__, __LINE__, ##__VA_ARGS__); \
