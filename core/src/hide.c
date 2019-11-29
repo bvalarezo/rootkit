@@ -31,6 +31,7 @@ int hide(const char __user *path) {
     kfree(_path);
     return result;
   }
+  printk("%s\n", _path);
   tempPath = kcalloc(strlen(_path) + strlen(hide__prefix) + 1,1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
