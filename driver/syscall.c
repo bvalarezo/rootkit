@@ -86,7 +86,8 @@ int htoul(unsigned long *dest, const char *a) {
 }
 
 int main(int argc, char **argv) {
-  unsigned long args[6];
+  unsigned long args[7];
+  int count;
   int i;
 
   if (!argc) {
@@ -102,7 +103,12 @@ int main(int argc, char **argv) {
 
   /* fill slots */
 
-  for (i = 1; i < argc; i++) {
+  count = sizeof(args) / sizeof(args[0]);
+
+  if (argc < count)
+    count = argc;
+
+  for (i = 1; i < count; i++) {
     if (*argv[i] == '0'
         && tolower(*(argv[i] + 1)) == 'x') {
       /* seems like it's a hex argument */
@@ -129,14 +135,14 @@ int main(int argc, char **argv) {
 
   /* fill remaining slots */
 
-  for (; i < 7; i++)
+  for (; i < sizeof(args) / sizeof(args[0]); i++)
     args[i - 1] = 0L;
 
   /* confirm */
 
   printf("Execute `syscall(");
   
-  for (i = 0; i < 5; i++)
+  for (i = 0; i < (sizeof(args) / sizeof(args[0])) - 1; i++)
     printf("0x%lx, ", args[i]);
   printf("0x%lx)`? [Y/n] ", args[i]);
   fflush(stdout);
@@ -146,6 +152,6 @@ int main(int argc, char **argv) {
 
   /* execute the syscall */
 
-  printf("\t->0x%lx\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5]));
+  printf("\t->0x%lx\n.", syscall(args[0], args[1], args[2], args[3], args[4], args[5], args[6]));
 }
 
