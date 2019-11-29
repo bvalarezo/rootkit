@@ -46,7 +46,7 @@ static struct iface_command iface__commands[] = {
   }
 };
 static struct sctm_hook iface__hook = {
-  .call = 157, /* `sys_prctl` */
+  .call = __NR_prctl, /* `sys_prctl` (102) */
   /* `.hook` is defined later on */
   /* `.hooked` is zeroed by the compiler */
 };
