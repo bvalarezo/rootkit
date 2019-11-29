@@ -36,7 +36,7 @@ REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
 
 if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
 then
-  for _PATH in $@
+  for _PATH in ${REST}
   do
     if [ "$(echo -n \"${_PATH}\" | cut -c 6)" = "/proc/" ]
     then
