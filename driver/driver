@@ -30,7 +30,7 @@
 CALL=157 # `sys_prctl`
 [ -z "$1" ] && echo "Expected a command." >&2 && exit 1
 COMMAND="$1"
-COMMAND_LEN=`echo -n "$(COMMAND}" | wc -c`
+COMMAND_LEN=`echo -n "${COMMAND}" | wc -c`
 SECRET=0xDEADBEEFDEADBEEF
 REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
 
