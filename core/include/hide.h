@@ -23,6 +23,7 @@
 #include <linux/fdtable.h>
 #include <linux/dcache.h>
 #include <linux/err.h>
+#include <linux/uaccess.h>
 
 #include "sctm.h"
 
