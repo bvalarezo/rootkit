@@ -38,6 +38,7 @@ int hide(const char __user *path) {
     kfree(_path);
     return -ENOMEM;
   }
+  printk("%p\n", tempPath);
   result = strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
   if (result < 0) {
     kfree(_path);
