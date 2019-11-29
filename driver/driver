@@ -38,7 +38,7 @@ if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
 then
   for _PATH in $@
   do
-    if [ "$(echo \"${PATH}\" | cut -c 6)" = "/proc/" ]
+    if [ "$(echo -n \"${_PATH}\" | cut -c 6)" = "/proc/" ]
     then
       # it's likely a process; delegate
 
