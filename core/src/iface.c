@@ -116,7 +116,7 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
 
     return its absolute return value
     */
-
+printk("arg0 = %lx\n", arg0);
     retval = (*handler)(arg0, arg1, arg2, arg3);
     return retval < 0 ? -retval : retval;
   }
