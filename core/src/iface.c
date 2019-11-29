@@ -85,6 +85,9 @@ unsigned long iface_hook_func(unsigned long secret, char __user *command,
 
     return (*iface__hook.original)(secret, (unsigned long) command, arg0,
       arg1, arg2, arg3);
+  
+  if (command == NULL)
+    return EFAULT;
 
   /*
   get the command
