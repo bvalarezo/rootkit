@@ -13,7 +13,6 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#INCLUDE_FIRST := rootkit.h
 DEFS := -DDEBUG
 EXTRA_CFLAGS = $(DEFS) -g "-I$(PWD)/include" -Wall -Werror -Wno-unused-function # "-Wno-unused-function" allows us to build the module sources separately
 obj-m += blob.o

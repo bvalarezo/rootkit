@@ -40,13 +40,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /* rootkit */
 
 #ifdef DEBUG
+
 #undef ROOTKIT_DEBUG
+#undef ROOTKIT__DEBUG_BASE
 #undef ROOTKIT_ERROR
 #undef ROOTKIT_NAME
 
-#define ROOTKIT_DEBUG(v) printk(KERN_INFO "[" #ROOTKIT_NAME "]: " v)
-#define ROOTKIT_ERROR(v) printk(KERN_WARNING "[" #ROOTKIT_NAME "]: " v)
+#define ROOTKIT_DEBUG(...) ROOTKIT__DEBUG_BASE(KERN_INFO, __VA_ARGS__)
+#define ROOTKIT__DEBUG_BASE(p, ...) do { \
+    printk(p "[" ROOTKIT_NAME ":%s:%d]: ", __FILE__, __LINE__); \
+    printk(__VA_ARGS__); \
+  } while (0)
+#define ROOTKIT_ERROR(...) ROOTKIT__DEBUG_BASE(KERN_ERR, __VA_ARGS__)
 #define ROOTKIT_NAME "rootkit"
+
 #endif
 
 #endif
