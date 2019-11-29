@@ -24,6 +24,9 @@ int hide(const char __user *path) {
   if (path == NULL)
     return EFAULT;
   _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
+
+  if (IS_ERR_OR_NULL(_path))
+    return ENOMEM;
   result = strncpy_from_user(_path, path, sizeof(_path));
   
   if (result) {
@@ -140,6 +143,9 @@ int show(const char __user *path) {
   if (path == NULL)
     return EFAULT;
   _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
+
+  if (IS_ERR_OR_NULL(_path))
+    return ENOMEM;
   result = strncpy_from_user(_path, path, sizeof(_path));
   
   if (result) {
