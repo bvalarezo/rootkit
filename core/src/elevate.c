@@ -8,12 +8,16 @@ static PID_NODE *head = NULL;
 
 /* drop a process's EUID */
 int drop(const pid_t pid) {
+  if (!pid)
+    return -EINVAL;
   process_deescalate(pid);
   return 0;
 }
 
 /* elevate a process's EUID */
 int elevate(const pid_t pid) {
+  if (!pid)
+    return -EINVAL;
   process_escalate(pid);
   return 0;
 }
