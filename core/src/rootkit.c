@@ -25,7 +25,7 @@ static void __exit rootkit_exit(void) {
   int retval;
 
 #ifdef DEBUG
-  ROOTKIT_DEBUG("rootkit_exit()");
+  ROOTKIT_DEBUG("rootkit_exit()\n");
 #endif
   retval = elevate_exit();
 
@@ -66,7 +66,7 @@ static int __init rootkit_init(void) {
   int retval;
 
 #ifdef DEBUG
-  ROOTKIT_DEBUG("rootkit_init()");
+  ROOTKIT_DEBUG("rootkit_init()\n");
 #endif
   
   retval = sctm_init(&rootkit__sctm);
