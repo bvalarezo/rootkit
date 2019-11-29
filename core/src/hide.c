@@ -27,10 +27,12 @@ int hide(const char __user *path) {
   if (IS_ERR_OR_NULL(_path))
     return -ENOMEM;
   result = strncpy_from_user(_path, path, PATH_MAX);
+  printk("here\n");
   if (result < 0) {
     kfree(_path);
     return result;
   }
+  printk("here\n");
   tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
