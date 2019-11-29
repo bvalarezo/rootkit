@@ -27,7 +27,7 @@ int hide(const char __user *path) {
   printk("here\n");
   if (IS_ERR_OR_NULL(_path))
     return ENOMEM;
-  result = strncpy_from_user(_path, path, sizeof(_path));
+  result = strncpy_from_user(_path, path, PATH_MAX);
   printk("here\n");
   if (result) {
     kfree(_path);
