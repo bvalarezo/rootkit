@@ -19,7 +19,7 @@ VERSION := `uname -r`
 KDIR := /lib/modules/$(VERSION)/build
 WD := `pwd`
 SRC := $(WD)/src
-SRCS := elevate.c ghost.c hide.c iface.c rootkit.c sctm.c
+SRCS := elevate.c fugitive.c hide.c iface.c rootkit.c sctm.c
 
 kbuild:
 	if [ -e "$(BLOB)" ]; then rm "$(BLOB)"; fi

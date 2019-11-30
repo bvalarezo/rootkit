@@ -32,7 +32,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <linux/version.h>
 
 #include "elevate.h"
-#include "ghost.h"
+#include "fugitive.h"
 #include "hide.h"
 #include "iface.h"
 #include "sctm.h"

