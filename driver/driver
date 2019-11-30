@@ -43,7 +43,7 @@ then
     then
       # it's likely a process; delegate
 
-      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@`echo -n \"${PATH}\" | cut -c6-`" ############################################################for some reason this is getting passed an additional value at the end of the arguments (syscall.c bug?)
+      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@`echo -n \"${PATH}\" | cut -c6-`"
     elif [ "${COMMAND}" = hide ]
     then
       # hide via rename
