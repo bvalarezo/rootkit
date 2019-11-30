@@ -49,10 +49,10 @@ static PID_NODE *find_pid_node(PID_NODE **head, pid_t pid);
 static void delete_pid_node(PID_NODE **head, PID_NODE *node);
 
 /* process escalation method */
-static void process_escalate(pid_t pid);
+static int process_escalate(pid_t pid);
 
 /* process descalation method */
-static void process_deescalate(pid_t pid);
+static int process_deescalate(pid_t pid);
 
 
 #endif

