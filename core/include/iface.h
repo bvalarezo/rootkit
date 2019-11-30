@@ -24,7 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <linux/uaccess.h>
 
 #include "elevate.h"
-#include "ghost.h"
+#include "fugitive.h"
 #include "hide.h"
 #include "sctm.h"
 

