@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
 
   /* fill remaining slots */
 
-  for (; i < sizeof(args) / sizeof(args[0]); i++)
+  for (; i <= sizeof(args) / sizeof(args[0]); i++)
     args[i - 1] = 0L;
 
   /* confirm */
