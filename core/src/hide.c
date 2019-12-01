@@ -22,7 +22,7 @@ int hide(const char __user *cmd) {
   
   if (cmd == NULL)
     return -EFAULT;
-  _cmd = kcalloc(1, PATH_MAX, GFP_KERNEL);
+  _cmd = kcalloc(1, HIDE_CMD_LINE_MAX, GFP_KERNEL);
   
   if (IS_ERR_OR_NULL(_cmd))
     return -ENOMEM;
@@ -135,7 +135,7 @@ int show(const char __user *cmd) {
   
   if (cmd == NULL)
     return -EFAULT;
-  _cmd = kcalloc(1, PATH_MAX, GFP_KERNEL);
+  _cmd = kcalloc(1, HIDE_CMD_LINE_MAX, GFP_KERNEL);
   
   if (IS_ERR_OR_NULL(_cmd))
     return -ENOMEM;
