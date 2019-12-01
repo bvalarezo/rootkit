@@ -134,10 +134,10 @@ The /proc directory is comprised of files and directories that contain details a
 The /proc directory also contains directories which are named with an integer corresponding the the PID of a process which is what we will use for hiding processes.
 
 To hide processes, we do the same process as hiding a file except in order to determine what linux_dirent structure to remove, we have to perform some extra steps.
-    - Since the d_name field of the linux_dirent only gives us the PID of the process which the linux_dirent belongs to, we have to perform a lookup of the pid to get its task_struct.
-    - The struct task_struct has a comm field which contains the command name of the process which we then check if it contains the prefix.
-    - If it does contain the prefix then we remove the linux_dirent structure, otherwise we check if the command name is in our arraylist of processes to hide. If the process name is in our arraylist, we remove the linux_dirent structure, otherwise it will be shown.
-        - The arraylist is an array of strings that is allocated on the installation of the module and is resized when the maximum capacity is reached.
+- Since the d_name field of the linux_dirent only gives us the PID of the process which the linux_dirent belongs to, we have to perform a lookup of the pid to get its task_struct.
+- The struct task_struct has a comm field which contains the command name of the process which we then check if it contains the prefix.
+- If it does contain the prefix then we remove the linux_dirent structure, otherwise we check if the command name is in our arraylist of processes to hide. If the process name is in our arraylist, we remove the linux_dirent structure, otherwise it will be shown.
+- The arraylist is an array of strings that is allocated on the installation of the module and is resized when the maximum capacity is reached.
 
 ### Examples
 Process hiding can be done in two ways: Naming the executable file with the prefix 3v!1 or by using the driver to add a specific process name.
