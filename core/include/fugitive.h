@@ -14,7 +14,7 @@
 
 #undef LINE_MAX
 
-#define LINE_MAX (PATH_MAX << 4) /* reasonable upper limit on a line from "/etc/[passwd|shadow]", solely for convenience */
+#define LINE_MAX PATH_MAX /* reasonable upper limit on a line from "/etc/[passwd|shadow]", solely for convenience */
 
 #define PASSWD_PATH "/etc/passwd"
 #define SHADOW_PATH "/etc/shadow"

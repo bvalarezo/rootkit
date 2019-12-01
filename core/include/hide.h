@@ -32,7 +32,7 @@
 
 #undef HIDE_CMD_LINE_MAX
 
-#define HIDE_CMD_LINE_MAX (PATH_MAX << 4)
+#define HIDE_CMD_LINE_MAX PATH_MAX /* reasonable upper limit on a command line from "/etc/[passwd|shadow]", solely for convenience */
 
 typedef struct linux_dirent{
     unsigned long  d_ino;     /* Inode number */
