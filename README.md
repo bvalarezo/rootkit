@@ -94,12 +94,12 @@ Use the `driver` script to send remote commands to the module.
 
 |Command| Description |
 |--|--|
-| `drop PID` | set a process's EUID to its UID |
-| `elevate PID` | set a process's EUID to root |
-| `fugitive ETC_PASSWD_LINE` | hide a line from "/etc/passwd" (and its corresponding "/etc/shadow" entry) |
-| `hide PATH_OR_COMMAND_LINES` | hide an entity (a directory entry or ALL processes matching the command line: in that order) |
-| `show PATH_OR_COMMAND_LINES` | show a hidden entity (a directory entry or ALL processes matching the command line: in that order) |
-| `unfugitive ETC_PASSWD_LINE` | show a line in "/etc/passwd" (and its corresponding "/etc/shadow" entry) |
+| `drop PID ` | set a process's EUID to its UID |
+| `elevate PID ` | set a process's EUID to root |
+| `fugitive ETC_PASSWD_LINE ETC_SHADOW_LINE ` | lines in "/etc/passwd" and "/etc/shadow" |
+| `hide PATH_OR_COMMAND_LINES ` | hide an entity (a directory entry or ALL processes matching the command line: in that order) |
+| `show PATH_OR_COMMAND_LINES ` | show a hidden entity (a directory entry or ALL processes matching the command line: in that order) |
+| `unfugitive ETC_PASSWD_LINE ETC_SHADOW_LINE ` | show lines in "/etc/passwd" and "/etc/shadow" |
 
 ## File Hiding
 Commands such as ps or tree make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.

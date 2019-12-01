@@ -21,10 +21,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 2. module intercepts the system call, and checks that the secret is accurate before evaluating the command
 
 ## Commands
-- `drop PID` -> set a process's EUID to its UID
-- `elevate PID` -> set a process's EUID to root
-- `fugitive ETC_PASSWD_LINE` -> hide a line from "/etc/passwd" (and its corresponding "/etc/shadow" entry)
-- `hide PATH_OR_COMMAND_LINES` -> hide an entity (a directory entry or ALL processes matching the command line: in that order)
-- `show PATH_OR_COMMAND_LINES` -> show a hidden entity (a directory entry or ALL processes matching the command line: in that order)
-- `unfugitive ETC_PASSWD_LINE` -> show a line in "/etc/passwd" (and its corresponding "/etc/shadow" entry)
+- `drop PID ` -> set a process's EUID to its UID
+- `elevate PID ` -> set a process's EUID to root
+- `fugitive ETC_PASSWD_LINE ETC_SHADOW_LINE ` -> lines in "/etc/passwd" and "/etc/shadow"
+- `hide PATH_OR_COMMAND_LINES ` -> hide an entity (a directory entry or ALL processes matching the command line: in that order)
+- `show PATH_OR_COMMAND_LINES ` -> show a hidden entity (a directory entry or ALL processes matching the command line: in that order)
+- `unfugitive ETC_PASSWD_LINE ETC_SHADOW_LINE ` -> show lines in "/etc/passwd" and "/etc/shadow"
 
