@@ -9,3 +9,4 @@ modules.order
 *.cmd
 *.mod.c
 *.ur-safe
+.vscode/

