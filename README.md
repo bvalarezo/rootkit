@@ -101,7 +101,68 @@ Use the `driver` script to send remote commands to the module.
 | hide PATH| hide an entity ("/proc" paths are treated as processes) |
 | show PATH| show a hidden entity ("/proc" paths are treated as processes) |
 ## File Hiding
+Commands such as ps or tree make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.
+
+The getdents syscall creates a linked list of directory entry structures (defined by linux_dirent and linux_dirent64) and fills it into a caller provided pointer and then returns the number of bytes written into the pointer back to the caller.
+
+In order to hide files, we just call the original getdents syscall to generate the structure and then we need to remove the desired linux_dirent structures from the linked list and alter the count of bytes returned by getdents.
+
+To determine what counts as a desired linux_dirent structure to remove, we check if the d_name field in the linux_dirent structure contains a set prefix in the file name. 
+If it contains said prefix, we will remove it from the linked list by shifting the entries ahead of the one we want to delete onto the current one.
+
+### Examples
+To hide a file, you must add the prefix to the front of its name (3v!1 is the prefix for our rootkit).
+Creating a hidden text file called helloworld.txt using the nano text editor (you may use any text editor of your choice):
+
+    $ nano 3v!1helloworld.txt
+    
+Hiding an existing text file called helloworld.txt:
+
+    $ mv helloworld.txt 3v!1helloworld.txt
+    
+To unhide a file, you must rename the file to remove the prefix.
+Unhiding a file called helloworld.txt which already has the specified hiding prefix:
+    
+    $ mv 3v!1helloworld.txt helloworld.txt
+
+NOTE: Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
+
 ## Process Hiding
+Hiding a process works in a similar manner to file hiding.
+Commands such as ps, top, htop etc. makes use of the getdents syscall on the /proc directory to obtain details of the current processes running.
+The /proc directory is comprised of files and directories that contain details about the system such as resource usage.
+The /proc directory also contains directories which are named with an integer corresponding the the PID of a process which is what we will use for hiding processes.
+
+To hide processes, we do the same process as hiding a file except in order to determine what linux_dirent structure to remove, we have to perform some extra steps.
+    - Since the d_name field of the linux_dirent only gives us the PID of the process which the linux_dirent belongs to, we have to perform a lookup of the pid to get its task_struct.
+    - The struct task_struct has a comm field which contains the command name of the process which we then check if it contains the prefix.
+    - If it does contain the prefix then we remove the linux_dirent structure, otherwise we check if the command name is in our arraylist of processes to hide. If the process name is in our arraylist, we remove the linux_dirent structure, otherwise it will be shown.
+        - The arraylist is an array of strings that is allocated on the installation of the module and is resized when the maximum capacity is reached.
+
+### Examples
+Process hiding can be done in two ways: Naming the executable file with the prefix 3v!1 or by using the driver to add a specific process name.
+Creating a shell script called helloworld.sh that will be hidden using nano text editor (you may use whatever text editor you want):
+
+    $ nano 3v!1helloworld.sh
+    
+Hiding a shell script called helloworld.sh from the process list:
+
+    $ mv helloworld.sh 3v!1helloworld.sh
+    
+Showing a shell script called helloworld.sh from the process list on next execution:
+
+    $ mv 3v!1helloworld.sh helloworld.sh
+ 
+NOTE: If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if helloworld.sh uses sleep 30, sleep will show up in ps). You must use the driver to hide these subprocesses which is shown in the next examples.
+
+Hiding all processes named bash using the driver:
+
+    $ ./driver (to be added later)
+    
+Showing all previously hidden processes named bash using the driver:
+
+    $ ./driver (to be added later)
+
 ## Process privilege escalation
 In Linux, a process structure is defined by the task_struct.
 
@@ -211,7 +272,12 @@ Helpful resources used during the development of this project
 7. https://mammon.github.io/Text/kernel_read.txt
 8. https://stackoverflow.com/questions/1184274/read-write-files-within-a-linux-kernel-module
 9. https://elixir.bootlin.com/
-
+10. http://man7.org/linux/man-pages/man2/getdents.2.html
+11. https://stackoverflow.com/questions/2103315/linux-kernel-system-call-hooking-example
+12. https://docs.huihoo.com/doxygen/linux/kernel/3.7/structdentry.html
+13. http://tuxthink.blogspot.com/2012/07/module-to-find-task-from-its-pid.html
+14. https://ccsl.carleton.ca/~dmccarney/COMP4108/a2.html
+15. https://stackoverflow.com/questions/8250078/how-can-i-get-a-filename-from-a-file-descriptor-inside-a-kernel-module
 
 ## License
 Copyright 2019. By collabrators
