@@ -9,16 +9,6 @@
 
 #include "sctm.h"
 
-#if defined __i386__
-    #define START_ADDRESS 0xc0000000
-    #define END_ADDRESS 0xd0000000
-	typedef unsigned int addr_size;
-#elif defined __x86_64__
-    #define START_ADDRESS 0xffffffff81000000
-    #define END_ADDRESS 0xffffffffa2000000
-    typedef unsigned long addr_size;
-#endif
-
 /* elevate/drop EUIDs */
 
 /* custom struct to store pids */
