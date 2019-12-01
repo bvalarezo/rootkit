@@ -191,6 +191,7 @@ Hiding all processes named bash using the driver:
     $ ./driver hide bash
     
     NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory.
+    The process name you want to hide must also not be a path to an existing file.
     Otherwise the driver will hide the file and not the process.
     e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
     
@@ -199,8 +200,10 @@ Showing all previously hidden processes named bash using the driver:
     $ ./driver show bash
     
     NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory.
+    The process name you want to hide must also not be a path to an existing file.
     Otherwise the driver will hide the file and not the process.
     e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
+    
 ## Process privilege escalation
 In Linux, a process structure is defined by the task_struct.
 
