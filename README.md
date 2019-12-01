@@ -113,6 +113,7 @@ If it contains said prefix, we will remove it from the linked list by shifting t
 
 ### Examples
 To hide a file, you must add the prefix to the front of its name (3v!1 is the prefix for our rootkit).
+
 Creating a hidden text file called helloworld.txt using the nano text editor (you may use any text editor of your choice):
 
     $ nano 3v!1helloworld.txt
@@ -139,10 +140,10 @@ Unhiding a file called helloworld.txt which already has the specified hiding pre
     
     $ ./driver show helloworld.txt
 
-NOTE: Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
+>**Note:** Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
 
 ## Process Hiding
-**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
+>**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
 
 Hiding a process works in a similar manner to file hiding.
 Commands such as ps, top, htop etc. makes use of the getdents syscall on the /proc directory to obtain details of the current processes running.
@@ -157,6 +158,7 @@ To hide processes, we do the same process as hiding a file except in order to de
 
 ### Examples
 Process hiding can be done in two ways: Naming the executable file with the prefix 3v!1 or by using the driver to add a specific process name.
+
 Creating a shell script called helloworld.sh that will be hidden using nano text editor (you may use whatever text editor you want):
 
     $ nano 3v!1helloworld.sh
@@ -182,24 +184,34 @@ Showing a shell script called helloworld.sh from the process list on next execut
      
     $ ./driver show helloworld.sh
  
-NOTE: If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if helloworld.sh uses sleep 30, sleep will show up in ps). You must use the driver to hide these subprocesses which is shown in the next examples.
+>**Note:** If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if helloworld.sh uses sleep 30, sleep will show up in ps). You must use the driver to hide these subprocesses which is shown in the next examples.
 
 Hiding all processes named bash using the driver:
 
-    $ ./driver (to be added later)
+    $ ./driver hide bash
+    
+    NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory.
+    The process name you want to hide must also not be a path to an existing file.
+    Otherwise the driver will hide the file and not the process.
+    e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
     
 Showing all previously hidden processes named bash using the driver:
 
-    $ ./driver (to be added later)
-
+    $ ./driver show bash
+    
+    NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory.
+    The process name you want to hide must also not be a path to an existing file.
+    Otherwise the driver will hide the file and not the process.
+    e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
+    
 ## Process privilege escalation
 In Linux, a process structure is defined by the task_struct.
 
 Escalating processes is done by modifying a task_struct's credentials. This can be accomplished by overwriting the credentials struct within the task_struct.
 
-All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type ‘struct cred’. Each task points to its credentials by a pointer called ‘cred’ in its task_struct.
+All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type ‘struct cred’. 
 
-A credential's struct can be accessed within the task_struct
+Each task points to its credentials by a pointer called ‘cred’ in its task_struct.
 
     pcred = (struct cred *)task->cred;
 
