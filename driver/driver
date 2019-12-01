@@ -43,16 +43,20 @@ if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
 then
   for ARG in ${REST}
   do
+    PREFIXED=`dirname "${ARG}"`"${PREFIX}"`basename "${ARG}"`
+
     if [ "${COMMAND}" = hide ] && [ -e "${ARG}" ]
     then
       # hide path via rename
 
-      mv "${ARG}" "${PREFIX}${ARG}"
-    elif [ -e "${PREFIX}${ARG}" ]
+      echo "Hiding \"${ARG}\" via renaming (\"${OLD}\" -> \"${PREFIXED}\")."
+      mv "${ARG}" "${PREFIXED}"
+    elif [ "${COMMAND}" = show ] && [ -e "${PREFIXED}" ]
     then
       # show path via rename
 
-      mv "${PREFIX}${ARG}" "${ARG}"
+      echo "Showing \"${ARG}\" via renaming (\"${PREFIXED}\" -> \"${NEW}\")."
+      mv "${PREFIXED}" "${ARG}"
     else
       # handle command line via syscall
 
