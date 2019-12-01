@@ -160,7 +160,7 @@ Creating a shell script called helloworld.sh that will be hidden using nano text
     
      or using the driver
      
-    $ nano 3v!1helloworld.sh
+    $ nano helloworld.sh
     $ ./driver hide helloworld.sh
     
 Hiding a shell script called helloworld.sh from the process list:
@@ -286,6 +286,13 @@ and
   (this can be done by modifying the `INCLUDE_FIRST` definition in "./src/Kbuild")
 
 See "./include/test.h", "./src/test.Kbuild", and "test.Makefile" for full examples.
+
+## Distribution of work
+- Driver, client communication with modules, hooking custom system calls, and consolidation of all functional modules - Bailey Defino
+- Process privlege escalation - Bryan Valarezo
+- Process hiding and file hiding - Jeffrey Wong
+- Backdoor account/hiding users from /etc/shadow and /etc/passwd - Junming Liu
+
 ## Sources
 Helpful resources used during the development of this project
 
