@@ -264,7 +264,7 @@ A simple (likely incomplete) example follows:
     #include <linux/kernel.h>
     #include <linux/module.h>
     
-    /* tell all \`getuid\` requests that the caller is root */
+    /* tell all `getuid` requests that the caller is root */
     
     struct sctm_hook hook;
     int inited = 0;
