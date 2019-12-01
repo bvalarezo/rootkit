@@ -116,14 +116,27 @@ Creating a hidden text file called helloworld.txt using the nano text editor (yo
 
     $ nano 3v!1helloworld.txt
     
+    or using the driver
+    
+    $ nano helloworld.txt
+    $ ./driver hide helloworld.txt
+    
 Hiding an existing text file called helloworld.txt:
 
     $ mv helloworld.txt 3v!1helloworld.txt
+    
+    or using the driver
+    
+    $ ./driver hide helloworld.txt
     
 To unhide a file, you must rename the file to remove the prefix.
 Unhiding a file called helloworld.txt which already has the specified hiding prefix:
     
     $ mv 3v!1helloworld.txt helloworld.txt
+    
+     or using the driver
+    
+    $ ./driver show helloworld.txt
 
 NOTE: Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
 
@@ -145,13 +158,26 @@ Creating a shell script called helloworld.sh that will be hidden using nano text
 
     $ nano 3v!1helloworld.sh
     
+     or using the driver
+     
+    $ nano 3v!1helloworld.sh
+    $ ./driver hide helloworld.sh
+    
 Hiding a shell script called helloworld.sh from the process list:
 
     $ mv helloworld.sh 3v!1helloworld.sh
     
+    or using the driver
+     
+    $ ./driver hide helloworld.sh
+    
 Showing a shell script called helloworld.sh from the process list on next execution:
 
     $ mv 3v!1helloworld.sh helloworld.sh
+    
+     or using the driver
+     
+    $ ./driver show helloworld.sh
  
 NOTE: If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if helloworld.sh uses sleep 30, sleep will show up in ps). You must use the driver to hide these subprocesses which is shown in the next examples.
 
