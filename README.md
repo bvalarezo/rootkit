@@ -142,7 +142,7 @@ Unhiding a file called helloworld.txt which already has the specified hiding pre
 NOTE: Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
 
 ## Process Hiding
-**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden!**
+**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
 
 Hiding a process works in a similar manner to file hiding.
 Commands such as ps, top, htop etc. makes use of the getdents syscall on the /proc directory to obtain details of the current processes running.
