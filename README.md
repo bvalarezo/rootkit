@@ -154,7 +154,14 @@ Dropping the escalated process back to its original UID
 
 >**Note:** You may only drop processes you have escalated before.
 
-## User hiding
+## Backdoor Account
+When the rootkit is first loaded, it adds backdoor account into /etc/passwd and /etc/shadow if the account doesn't exist already. It also hides backdoor account while the rootkit is loaded by hijacking write syscall and change the output buffer.
+
+### Backdoor account info
+> Username = fugitive
+
+> Password = Password123
+
 ## Hooking custom system calls 
 ### Extending the Base Code
 The base code is meant to be extended, in fact:
@@ -199,6 +206,11 @@ Helpful resources used during the development of this project
 2. https://davejingtian.org/2019/02/25/syscall-hijacking-in-2019/
 3. https://www.kernel.org/doc/Documentation/security/credentials.txt
 4. https://github.com/torvalds/linux/blob/master/include/linux/sched.h
+5. http://tldp.org/LDP/lkmpg/2.6/html/lkmpg.html
+6. https://www.kernel.org/doc/html/latest/media/uapi/v4l/io.html
+7. https://mammon.github.io/Text/kernel_read.txt
+8. https://stackoverflow.com/questions/1184274/read-write-files-within-a-linux-kernel-module
+9. https://elixir.bootlin.com/
 
 
 ## License
