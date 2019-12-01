@@ -113,6 +113,7 @@ If it contains said prefix, we will remove it from the linked list by shifting t
 
 ### Examples
 To hide a file, you must add the prefix to the front of its name (3v!1 is the prefix for our rootkit).
+
 Creating a hidden text file called helloworld.txt using the nano text editor (you may use any text editor of your choice):
 
     $ nano 3v!1helloworld.txt
@@ -157,6 +158,7 @@ To hide processes, we do the same process as hiding a file except in order to de
 
 ### Examples
 Process hiding can be done in two ways: Naming the executable file with the prefix 3v!1 or by using the driver to add a specific process name.
+
 Creating a shell script called helloworld.sh that will be hidden using nano text editor (you may use whatever text editor you want):
 
     $ nano 3v!1helloworld.sh
@@ -186,12 +188,15 @@ Showing a shell script called helloworld.sh from the process list on next execut
 
 Hiding all processes named bash using the driver:
 
-    $ ./driver (to be added later)
+    $ ./driver hide bash
+    
+    NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory, otherwise the driver will hide the file and not the process (e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
     
 Showing all previously hidden processes named bash using the driver:
 
-    $ ./driver (to be added later)
-
+    $ ./driver show bash
+    
+    NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory, otherwise the driver will hide the file and not the process (e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
 ## Process privilege escalation
 In Linux, a process structure is defined by the task_struct.
 
