@@ -139,10 +139,10 @@ Unhiding a file called helloworld.txt which already has the specified hiding pre
     
     $ ./driver show helloworld.txt
 
-NOTE: Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
+>**Note:** Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
 
 ## Process Hiding
-**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
+>**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
 
 Hiding a process works in a similar manner to file hiding.
 Commands such as ps, top, htop etc. makes use of the getdents syscall on the /proc directory to obtain details of the current processes running.
@@ -182,7 +182,7 @@ Showing a shell script called helloworld.sh from the process list on next execut
      
     $ ./driver show helloworld.sh
  
-NOTE: If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if helloworld.sh uses sleep 30, sleep will show up in ps). You must use the driver to hide these subprocesses which is shown in the next examples.
+>**Note:** If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if helloworld.sh uses sleep 30, sleep will show up in ps). You must use the driver to hide these subprocesses which is shown in the next examples.
 
 Hiding all processes named bash using the driver:
 
@@ -197,9 +197,9 @@ In Linux, a process structure is defined by the task_struct.
 
 Escalating processes is done by modifying a task_struct's credentials. This can be accomplished by overwriting the credentials struct within the task_struct.
 
-All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type ‘struct cred’. Each task points to its credentials by a pointer called ‘cred’ in its task_struct.
+All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type ‘struct cred’. 
 
-A credential's struct can be accessed within the task_struct
+Each task points to its credentials by a pointer called ‘cred’ in its task_struct.
 
     pcred = (struct cred *)task->cred;
 
