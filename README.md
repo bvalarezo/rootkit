@@ -1,7 +1,16 @@
-# rootkit
-CSE331 Project 1 
+# ROOTKIT 
+A basic rootkit Linux kernel module for exploiting kernel functions and user data. 
 
-Project 1: Linux Rootkit
+> This rootkit was developed and intended for Ubuntu 16.04 xenial on
+> kernel version x86_64 4.15.0-66-generic
+
+### Rootkit functionalities:
+ - File hiding
+ - Process hiding
+ - Process privilege escalation
+ - User hiding
+ - Hooking custom system calls 
+## Prompt/Introduction
 
 After attackers manage to gain access to a remote (or local) machine and elevate their privileges to "root", they typically want to maintain their access, while hiding their presence from the normal users and administrators of the system.
 
@@ -17,51 +26,135 @@ In this project, you are asked to design and implement a basic rootkit for the L
 
 Note that all of these should happen by intercepting the appropriate system calls in the Linux kernel and modifying the results. You should not perform the above by replacing the system binaries (like "ls", or "ps").
 
-=======================================================================
-We have to hijack the System Calls. We want to modify the SysCall Table to point to our malicious functions. 
-The backdoor account should not be affected by any of these modiications.
+## Installation
+This module is composed of two components, the core and the driver. Each component will have to built sepeartely. 
 
-First, we need to find the SysCall table 
+>The following commands assume that this project folder is the current directory.
+### Core
+The core program is the Linux kernel module that will handle system call hooking and other operations in the kernel space. All of these commands should be ran in the *core* directory. 
+>**You must have root privileges to run these commands**.
 
-Find the index of the SysCalls that we want to replace to perform the above goals.
+    $ cd core
 
-Create a functon that replaces these SysCalls while holding the pointer to the original SysCall function.
+#### Build
 
-Protocol to communicate to the module:
-    - Create a new SysCall (SysCall index n in the SysCall table) with the module installation which will point to a function that we define that will handle communication to the module.
-    - Only the backdoor account should be able to successully execute the new SysCall.
-    
-For first time installation:
-    - We are assumed to have root access.
-    - Rootkit will create a backdoor account on installation, switch to the new backdoor account (via "su backdooraccount"), and print out "Syscall N".
- 
-Subsequent accesses to the compromised system:
-    - Log in via through the backdoor account.
-    
-SysCall N:
-    - Potentially prompt attacker "What do you want to do?"
-        - Hide speciic files
-        - Hide processes from the process table
-        - Control privilege execution for processes
-        - Delete itself on uninstallation
-    - Lists all of the files and processes already hidden
-        - Directory that contains two directories
-            - One for processes and one for filepaths
+To compile the module, run `make`
 
-======================================================================================================================
-Misc. Specifications:
-- Kernel Version Choice: Doesn't matter
-- Potentially add a new module to handle the direct calling of syscalls.
-======================================================================================================================
-## 10/25
-### Idea for hiding:
-Mask most significant bit of inode
--file
--process     (check /proc)
--directory
-    -traverse all the way up to root and see if any directory is hidden.
+    $ make
 
-## potential design/interaction protocol
-- base module which runs any command as root (extensible & decreases # of evil modules)
-- evil binary which passes a command to the base module
+#### Install
 
+To install the module, run `insmod`
+
+    $ insmod src/blob.ko  
+
+#### Build & Install
+ This one-liner will build & install the module for us, provided by our Makefile.
+
+    $ make install
+
+> **Note**: Our module loads with the name `blob` when displayed from `lsmod`.
+> 
+#### Uninstall 
+To uninstall the module, run `rmmod`
+
+    $ rmmod blob
+
+#### Clean
+In the event that you need to re-compile our module, you can clean the compiled object and kernel-object files with this command.
+
+    $ make clean
+
+### Driver
+The driver program is used to communicate to the core program from user space. This will interface the client and the core by accepting a series of command arguements. All of these commands should be ran in the *driver* directory. 
+
+    $ cd driver
+
+#### Install
+Install the driver program using the C compiler.
+
+    $ cc syscall.c -o syscall
+
+#### Uninstall
+To uninstall the driver program, delete it.
+
+    $ rm syscall
+
+## Usage
+
+Client makes a system call, with these arguments:
+
+    syscall(secret system call number, secret, command, ...)
+
+Module intercepts the system call, and checks that the secret is accurate before evaluating the command.
+
+Use the `driver` script to send remote commands to the module.  
+
+    $ ./driver COMMAND [ULONG | 0xHEXULONG | CARRAY ...]
+
+|Command| Description |
+|--|--|
+| elevate PID | set a process's UID to root|
+| drop PID| set a process's UID from root to its original |
+| fugitive UID| remove a user from "/etc/passwd" and "/etc/shadow" |
+| unfugitive UID | replace a user from "/etc/passwd" and "/etc/shadow" |
+| hide PATH| hide an entity ("/proc" paths are treated as processes) |
+| show PATH| show a hidden entity ("/proc" paths are treated as processes) |
+## File Hiding
+## Process Hiding
+## Process privilege escalation
+## User hiding
+## Hooking custom system calls 
+### Extending the Base Code
+The base code is meant to be extended, in fact:
+it barely does anything on its own.
+To run your own code with the module,
+there are 4 hooks (which are called in the following order):
+1. `SCTM_INIT_PRE_HOOK`
+2. `SCTM_INIT_POST_HOOK`
+3. `SCTM_EXIT_PRE_HOOK`
+4. `SCTM_EXIT_POST_HOOK`
+
+The first 2 are called after the module is loaded,
+and the other 2 are called before the module is unloaded.
+
+### Hooking the System Call Table with `sctm`
+Using `sctm`, this boils down to 3 basic steps:
+1. represent your system call handler as `struct sctm_hook`
+2. write an initialization function to call `sctm_hook` with your handler
+and
+3. define `SCTM_INIT_POST_HOOK` to a function or function-like macro containing the hooking code.
+
+See "./src/test.c" for a full example.
+
+### Building `sctm`
+A few quirks of the `Kbuild` process make this a bit finnicky:
+declarations/definitions must occur in a very specific context and order.
+The easiest solution is to include necessary definitions ASAP,
+include all source files in a blob, and compile the blob.
+If defining any of the `SCTM_*_HOOK` functions,
+the following must be done:
+1. definitions (including for the initialization hook function)
+  MUST be in a separate header file
+and
+2. `SCTM_INCLUDE` MUST be defined at compile time
+  (this can be done by modifying the `INCLUDE_FIRST` definition in "./src/Kbuild")
+
+See "./include/test.h", "./src/test.Kbuild", and "test.Makefile" for full examples.
+
+## License
+Copyright 2019. By collabrators
+[Bailey Defino](https://bdefino.github.io), [Bryan Valarezo](https://bvalarezo.github.io), [Jeffery Wong](https://jeffrewong.github.io), [Jumming Liu](https://junmingl.github.io)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.

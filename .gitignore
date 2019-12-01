@@ -1,0 +1,11 @@
+blob.c
+*.[oa]
+*~
+.*.swp
+Module.symvers
+modules.order
+*.ko
+.tmp_versions
+*.cmd
+*.mod.c
+*.ur-safe
