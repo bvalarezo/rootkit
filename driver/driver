@@ -49,6 +49,7 @@ then
 
       mv "${ARG}" "${PREFIX}${ARG}"
     elif [ -e "${PREFIX}${ARG}" ]
+    then
       # show path via rename
 
       mv "${PREFIX}${ARG}" "${ARG}"
