@@ -34,7 +34,7 @@ int fugitive(const char __user *passwd, const char __user *shadow) {
   if (shadow == NULL)
     return -EFAULT;
   _passwd = kcalloc(LINE_MAX, 1, GFP_KERNEL);
-printk("kcalloc(LINE_MAX, 1, GFP_KERNEL) -> %d\n", retval);
+printk("kcalloc(LINE_MAX, 1, GFP_KERNEL) -> %p\n", _passwd);
   if (IS_ERR_OR_NULL(_passwd))
     return -ENOMEM;
   retval = strncpy_from_user(_passwd, passwd, LINE_MAX);
@@ -44,7 +44,7 @@ printk("strncpy_from_user(_passwd, passwd, LINE_MAX) -> %d\n", retval);
     return retval;
   }
   _shadow = kcalloc(LINE_MAX, 1, GFP_KERNEL);
-printk("kcalloc(LINE_MAX, 1, GFP_KERNEL) -> %d\n", retval);
+printk("kcalloc(LINE_MAX, 1, GFP_KERNEL) -> %p\n", _shadow);
   if (IS_ERR_OR_NULL(_shadow))
     return -ENOMEM;
   retval = strncpy_from_user(_shadow, shadow, LINE_MAX);
