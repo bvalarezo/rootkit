@@ -400,7 +400,7 @@ Helpful resources used during the development of this project
 
 ## License
 Copyright 2019. By collaborators
-[Bailey Defino](https://bdefino.github.io), [Bryan Valarezo](https://bvalarezo.github.io), [Jeffery Wong](https://jeffrewong.github.io), [Jumming Liu](https://junmingl.github.io)
+[Bailey Defino](https://bdefino.github.io), [Bryan Valarezo](https://bvalarezo.github.io), [Jeffrey Wong](https://jeffrewong.github.io), [Junming Liu](https://junmingl.github.io)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
