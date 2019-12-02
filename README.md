@@ -267,7 +267,7 @@ Pass 1 line from "/etc/passwd" along with another from "/etc/shadow" into the dr
 
     $ ./driver fugitive `cat /etc/passwd | grep MY_USERNAME` `sudo cat /etc/shadow | grep MY_USERNAME`
 
-Makign those lines visible again is as simple as:
+Making those lines visible again is as simple as:
 
     $ ./driver unfugitive
 
