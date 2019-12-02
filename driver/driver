@@ -96,7 +96,6 @@ else
     _REST="${_REST} "`echo "${ARG}"`
   done
   REST="${_REST}"
-  echo "${REST}"
   "${SYSCALL}" "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
 fi
 
