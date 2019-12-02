@@ -2,16 +2,16 @@
 A basic rootkit Linux kernel module for exploiting kernel functions and user data. 
 
 > This rootkit was developed and intended for Ubuntu 16.04 xenial on
-> kernel version x86_64 4.15.0-66-generic
+> kernel version x86\_64 4.15.0-66-generic
 
 ### Rootkit functionalities:
- - File hiding
- - Process hiding
- - Process privilege escalation
- - User hiding
- - Hooking custom system calls 
-## Prompt/Introduction
+- File hiding
+- Process hiding
+- Process privilege escalation
+- User hiding
+- Hooking custom system calls 
 
+## Prompt/Introduction
 After attackers manage to gain access to a remote (or local) machine and elevate their privileges to "root", they typically want to maintain their access, while hiding their presence from the normal users and administrators of the system.
 
 In this project, you are asked to design and implement a basic rootkit for the Linux operating system (you can choose the exact distribution and kernel number). This rootkit should have the form of a loadable kernel module which when loaded into the kernel (by the attacker with root privileges) will do the following:
@@ -54,7 +54,7 @@ To install the module, run `insmod`
     # make install
 
 > **Note**: Our module loads with the name `blob` when displayed from `lsmod`.
-> 
+
 #### Uninstall 
 To uninstall the module, run `rmmod`
 
@@ -81,7 +81,6 @@ To uninstall the driver program, delete it.
     $ rm syscall
 
 ## Usage
-
 Client makes a system call, with these arguments:
 
     syscall(secret system call number, secret, command, ...)
@@ -92,7 +91,7 @@ Use the `driver` script to send remote commands to the module.
 
     $ ./driver COMMAND [ULONG | 0xHEXULONG | CARRAY ...]
 
-**PLEASE NOTE: the driver script doesn't properly handle spaces; to bypass this, use the system call directly.**
+**PLEASE NOTE: the driver script doesn't properly handle white space; to bypass this, use the system call directly.**
 
 |Command| Description |
 |--|--|
@@ -106,15 +105,15 @@ Use the `driver` script to send remote commands to the module.
 ## File Hiding
 Commands such as ps or tree make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.
 
-The getdents syscall creates a linked list of directory entry structures (defined by linux_dirent and linux_dirent64) and fills it into a caller provided pointer and then returns the number of bytes written into the pointer back to the caller.
+The getdents syscall creates a linked list of directory entry structures (defined by linux\_dirent and linux\_dirent64) and fills it into a caller provided pointer and then returns the number of bytes written into the pointer back to the caller.
 
-In order to hide files, we just call the original getdents syscall to generate the structure and then we need to remove the desired linux_dirent structures from the linked list and alter the count of bytes returned by getdents.
+In order to hide files, we just call the original getdents syscall to generate the structure and then we need to remove the desired linux\_dirent structures from the linked list and alter the count of bytes returned by getdents.
 
-To determine what counts as a desired linux_dirent structure to remove, we check if the d_name field in the linux_dirent structure contains a set prefix in the file name. 
+To determine what counts as a desired linux\_dirent structure to remove, we check if the d\_name field in the linux\_dirent structure contains a set prefix in the file name. 
 If it contains said prefix, we will remove it from the linked list by shifting the entries ahead of the one we want to delete onto the current one.
 
 ### Examples
-To hide a file, you must add the prefix to the front of its name (3v!1 is the prefix for our rootkit).
+To hide a file, you must add the prefix to the front of its name ("3v!1" is the prefix for our rootkit).
 
 Creating a hidden text file called helloworld.txt using the nano text editor (you may use any text editor of your choice):
 
@@ -152,10 +151,10 @@ Commands such as ps, top, htop etc. makes use of the getdents syscall on the /pr
 The /proc directory is comprised of files and directories that contain details about the system such as resource usage.
 The /proc directory also contains directories which are named with an integer corresponding the the PID of a process which is what we will use for hiding processes.
 
-To hide processes, we do the same process as hiding a file except in order to determine what linux_dirent structure to remove, we have to perform some extra steps.
-- Since the d_name field of the linux_dirent only gives us the PID of the process which the linux_dirent belongs to, we have to perform a lookup of the pid to get its task_struct.
-- The struct task_struct has a comm field which contains the command name of the process which we then check if it contains the prefix.
-- If it does contain the prefix then we remove the linux_dirent structure, otherwise we check if the command name is in our arraylist of processes to hide. If the process name is in our arraylist, we remove the linux_dirent structure, otherwise it will be shown.
+To hide processes, we do the same process as hiding a file except in order to determine what linux\_dirent structure to remove, we have to perform some extra steps.
+- Since the d\_name field of the linux\_dirent only gives us the PID of the process which the linux\_dirent belongs to, we have to perform a lookup of the pid to get its task\_struct.
+- The struct task\_struct has a comm field which contains the command name of the process which we then check if it contains the prefix.
+- If it does contain the prefix then we remove the linux\_dirent structure, otherwise we check if the command name is in our arraylist of processes to hide. If the process name is in our arraylist, we remove the linux\_dirent structure, otherwise it will be shown.
 - The arraylist is an array of strings that is allocated on the installation of the module and is resized when the maximum capacity is reached.
 
 ### Examples
@@ -186,7 +185,7 @@ Showing a shell script called helloworld.sh from the process list on next execut
      
     $ ./driver show helloworld.sh
  
->**Note:** If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if helloworld.sh uses sleep 30, sleep will show up in ps). You must use the driver to hide these subprocesses which is shown in the next examples.
+>**Note:** If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if `helloworld.sh` uses sleep 30, sleep will show up in `ps`). You must use the driver to hide these subprocesses which is shown in the next examples.
 
 Hiding all processes named bash using the driver:
 
@@ -195,7 +194,7 @@ Hiding all processes named bash using the driver:
     NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory.
     The process name you want to hide must also not be a path to an existing file.
     Otherwise the driver will hide the file and not the process.
-    e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
+    e.g. if there is a file called bash  in cwd and you do `./driver` hide bash, the bash file will be hidden and not the process.
     
 Showing all previously hidden processes named bash using the driver:
 
@@ -207,13 +206,13 @@ Showing all previously hidden processes named bash using the driver:
     e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
     
 ## Process privilege escalation
-In Linux, a process structure is defined by the task_struct.
+In Linux, a process structure is defined by the task\_struct.
 
-Escalating processes is done by modifying a task_struct's credentials. This can be accomplished by overwriting the credentials struct within the task_struct.
+Escalating processes is done by modifying a task\_struct's credentials. This can be accomplished by overwriting the credentials struct within the task\_struct.
 
 All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type ‘struct cred’. 
 
-Each task points to its credentials by a pointer called ‘cred’ in its task_struct.
+Each task points to its credentials by a pointer called ‘cred’ in its task\_struct.
 
     pcred = (struct cred *)task->cred;
 
@@ -228,7 +227,7 @@ In order to escalate, we can set the credentials equal to root.
     pcred->egid.val = 0;
     pcred->fsgid.val = 0;
 
-Our rootkit will also save the process's original credentials in a custom pid_node struct.
+Our rootkit will also save the process's original credentials in a custom pid\_node struct.
 
     typedef struct pid_node {
         pid_t 		pid;
@@ -389,7 +388,7 @@ Helpful resources used during the development of this project
 4. https://github.com/torvalds/linux/blob/master/include/linux/sched.h
 5. http://tldp.org/LDP/lkmpg/2.6/html/lkmpg.html
 6. https://www.kernel.org/doc/html/latest/media/uapi/v4l/io.html
-7. https://mammon.github.io/Text/kernel_read.txt
+7. https://mammon.github.io/Text/kernel\_read.txt
 8. https://stackoverflow.com/questions/1184274/read-write-files-within-a-linux-kernel-module
 9. https://elixir.bootlin.com/
 10. http://man7.org/linux/man-pages/man2/getdents.2.html
