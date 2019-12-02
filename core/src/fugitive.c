@@ -253,7 +253,6 @@ int hide_fugitive(void){
 }
 
 int show_fugitive(void){
-    int hooked;
     int i;
     
     for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++)
