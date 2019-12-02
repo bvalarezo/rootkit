@@ -60,14 +60,14 @@ then
     then
       # hide path via rename
 
-      echo "Hiding \"${ARG}\" via renaming (\"${OLD}\" -> \"${PREFIXED}\")."
+      echo "Hiding \"${ARG}\" via renaming (\"${ARG}\" -> \"${PREFIXED}\")."
       mv "${ARG}" "${PREFIXED}"
     elif [ "${COMMAND}" = show ] \
       && [ -e "${PREFIXED}" ]
     then
       # show path via rename
 
-      echo "Showing \"${ARG}\" via renaming (\"${PREFIXED}\" -> \"${NEW}\")."
+      echo "Showing \"${ARG}\" via renaming (\"${PREFIXED}\" -> \"${ARG}\")."
       mv "${PREFIXED}" "${ARG}"
     else
       # handle command line via syscall
