@@ -134,12 +134,12 @@ int fugitive_init(struct sctm *sctm) {
   /* hook */
   
   for (i = 0; i < sizeof(fugitive__hooks) / sizeof(fugitive__hooks[0]); i++) {
-    retval = 0;//sctm_hook(fugitive__sctm, &fugitive__hooks[i]);
+    retval = sctm_hook(fugitive__sctm, &fugitive__hooks[i]);
     
     if (retval) {
       if (i) {
         for (--i; i >= 0; i--)
-          ;//sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
+          sctm_unhook(fugitive__sctm, &fugitive__hooks[i]);
       }
       return retval;
     }
