@@ -38,7 +38,7 @@ int fugitive(const char __user *passwd, const char __user *shadow) {
   if (IS_ERR_OR_NULL(_passwd))
     return -ENOMEM;
   retval = strncpy_from_user(_passwd, passwd, LINE_MAX);
-  printk("_passwd = %p, retval = %d\n", retval);
+  printk("_passwd = %p, retval = %d\n", _passwd, retval);
   if (retval) {
     kfree(_passwd);
     return retval;
