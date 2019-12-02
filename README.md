@@ -275,14 +275,50 @@ Making those lines visible again is as simple as:
 ## Using the System Call Table Modifier (`sctm`)
 `sctm` is partially object-oriented (in that all operations occur on a `struct sctm *`);
 as a result, a `struct sctm` instance **must** be initialized with `sctm_init` and finalized with `sctm_cleanup`.
-A simple (likely incomplete) example follows:
-    
+A simple (likely incomplete) example follows.
+
+`./include/sctm.h`:
+
+**OMITTED FOR BREVITY**
+
+`./Makefile`:
+**PLEASE NOTE: because of undefined reference issues in a multi-sourced module, the module is built as a code blob**
+
+    BLOB := blob.c
+    CLEAN_TARGETS := "$(BLOB)" .cache.mk *.ko modules.order Module.symvers *.o
+    VERSION := `uname -r`
+    KDIR := /lib/modules/$(VERSION)/build
+    WD := `pwd`
+    SRC := $(WD)/src
+    SRCS := example.c sctm.c
+
+    kbuild:
+    	if [ -e "$(BLOB)" ]; then rm "$(BLOB)"; fi
+    	cd "$(SRC)" && cat $(SRCS) > "$(BLOB)"
+    	make -C "$(KDIR)" M="$(SRC)" modules
+
+    clean:
+    	cd "$(SRC)" && for TARGET in $(CLEAN_TARGETS); do [ -e "$${TARGET}" ] && rm "$${TARGET}"; done
+    	make -C "$(KDIR)" M="$(SRC)" clean
+
+    install:
+    	make && sudo insmod "$(SRC)"/*.ko
+
+`./src/Kbuild`:
+
+    EXTRA-CFLAGS += -I"$(PWD)/include" -Wall -Werror
+    obj-m += blob.o
+
+`./src/example.c`:
+
     #define __KERNEL__
     
     #include <linux/errno.h>
     #include <linux/init.h>
     #include <linux/kernel.h>
     #include <linux/module.h>
+
+    #include "sctm.h"
     
     /* tell all `getuid` requests that the caller is root */
     
