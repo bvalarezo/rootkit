@@ -319,6 +319,12 @@ A simple (likely incomplete) example follows:
 
     asmlinkage unsigned long lie(void) {
       return 0;
+      
+      /*
+      if we wanted to defer to the original instead,
+      we could use something like this:
+        `return ((asmlinkage unsigned long (*)(void)) hook.original)();`
+      */
     }
     
     module_exit(exit_module)
