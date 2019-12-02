@@ -92,6 +92,8 @@ Use the `driver` script to send remote commands to the module.
 
     $ ./driver COMMAND [ULONG | 0xHEXULONG | CARRAY ...]
 
+**PLEASE NOTE: the driver script doesn't properly handle spaces; to bypass this, use the system call directly.**
+
 |Command| Description |
 |--|--|
 | `drop PID ` | set a process's EUID to its UID |

