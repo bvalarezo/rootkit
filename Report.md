@@ -29,11 +29,11 @@ Note that all of these should happen by intercepting the appropriate system call
 ## Installation
 This module is composed of two components, the core and the driver. Each component will have to built sepeartely. 
 
->The following commands assume that this project folder is the current directory.
+> The following commands assume that this project folder is the current directory.
 ### Core
 The core program is the Linux kernel module that will handle system call hooking and other operations in the kernel space.
 All of these commands should be ran in `./core`. 
->**You must have root privileges to run these installation commands**.
+> **You must have root privileges to run these installation commands**.
 
 #### Build
 
@@ -89,7 +89,7 @@ Use the `driver` script to send remote commands to the module.
 
     $ ./driver COMMAND [ULONG | 0xHEXULONG | CARRAY ...]
 
-**PLEASE NOTE: the driver script doesn't properly handle white space; to bypass this, use the system call directly.**
+> **PLEASE NOTE: the driver script doesn't properly handle white space; to bypass this, use the system call directly.**
 
 |Command| Description |
 |--|--|
@@ -139,10 +139,10 @@ Unhiding a file called `helloworld.txt` which already has the specified hiding p
     
     $ ./driver show helloworld.txt
 
->**Note:** Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
+> **Note:** Make sure you keep track of the paths of directories/files that are hidden as they will be hidden to you as well.
 
 ## Process Hiding
->**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
+> **PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
 
 Hiding a process works in a similar manner to file hiding.
 Commands such as `ps`, `top`, `htop`, etc. make use of the `getdents` syscall on the `/proc` directory to obtain details of the current processes running.
@@ -183,7 +183,7 @@ or using the driver
      
     $ ./driver show helloworld.sh
  
->**Note:** If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if `helloworld.sh` uses sleep 30, sleep will show up in `ps`). You must use the driver to hide these subprocesses which is shown in the next examples.
+> **Note:** If the process spawns subprocesses, those subprocesses will NOT be hidden (e.g. if `helloworld.sh` uses sleep 30, sleep will show up in `ps`). You must use the driver to hide these subprocesses which is shown in the next examples.
 
 Hiding all processes named bash using the driver:
 
@@ -255,10 +255,10 @@ Dropping the escalated process back to its original UID
 
     $ ./driver drop 12345
 
->**Note:** You may only drop processes you have escalated before.
+> **Note:** You may only drop processes you have escalated before.
 
 ## Backdoor Account
-**PLEASE NOTE: at most, 1 account can be hidden at a time**
+> **PLEASE NOTE: at most, 1 account can be hidden at a time**
 The rootkit hides a backdoor account by hijacking the read syscall and truncating parts of the output buffer.
 
 ### Hiding an Account
@@ -290,10 +290,10 @@ A simple (likely incomplete) example follows.
 
 `./include/sctm.h`:
 
-**OMITTED FOR BREVITY**
+> **OMITTED FOR BREVITY**
 
 `./Makefile`:
-**PLEASE NOTE: because of undefined reference issues in a multi-sourced module, the module is built as a code blob**
+> **PLEASE NOTE: because of undefined reference issues in a multi-sourced module, the module is built as a code blob**
 
     BLOB := blob.c
     CLEAN_TARGETS := "$(BLOB)" .cache.mk *.ko modules.order Module.symvers *.o
