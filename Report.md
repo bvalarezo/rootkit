@@ -95,7 +95,7 @@ Use the `driver` script to send remote commands to the module.
 |--|--|
 | `drop PID` | set a process's EUID to its UID |
 | `elevate PID` | set a process's EUID to root |
-| `fugitive ETC_PASSWD_LINE ETC_SHADOW_LINE` | lines in "/etc/passwd" and "/etc/shadow" |
+| `fugitive ETC_PASSWD_LINE ETC_SHADOW_LINE` | hide lines in "/etc/passwd" and "/etc/shadow" |
 | `hide PATH_OR_COMMAND_LINES` | hide an entity (a directory entry or ALL processes matching the command line: in that order) |
 | `show PATH_OR_COMMAND_LINES` | show a hidden entity (a directory entry or ALL processes matching the command line: in that order) |
 | `unfugitive` | show lines in "/etc/passwd" and "/etc/shadow" |
