@@ -103,19 +103,19 @@ Use the `driver` script to send remote commands to the module.
 | `unfugitive` | show lines in "/etc/passwd" and "/etc/shadow" |
 
 ## File Hiding
-Commands such as ps or tree make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.
+Commands such as `ps` or `tree` make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.
 
-The getdents syscall creates a linked list of directory entry structures (defined by linux\_dirent and linux\_dirent64) and fills it into a caller provided pointer and then returns the number of bytes written into the pointer back to the caller.
+The getdents syscall creates a linked list of directory entry structures (defined by `linux_dirent` and `linux_dirent64`) and fills it into a caller provided pointer and then returns the number of bytes written into the pointer back to the caller.
 
-In order to hide files, we just call the original getdents syscall to generate the structure and then we need to remove the desired linux\_dirent structures from the linked list and alter the count of bytes returned by getdents.
+In order to hide files, we just call the original getdents syscall to generate the structure and then we need to remove the desired `linux_dirent` structures from the linked list and alter the count of bytes returned by getdents.
 
-To determine what counts as a desired linux\_dirent structure to remove, we check if the d\_name field in the linux\_dirent structure contains a set prefix in the file name. 
+To determine what counts as a desired `linux_dirent` structure to remove, we check if the `d_name` field in the `linux_dirent` structure contains a set prefix in the file name. 
 If it contains said prefix, we will remove it from the linked list by shifting the entries ahead of the one we want to delete onto the current one.
 
 ### Examples
-To hide a file, you must add the prefix to the front of its name ("3v!1" is the prefix for our rootkit).
+To hide a file, you must add the prefix to the front of its name ("**3v!1**" is the prefix for our rootkit).
 
-Creating a hidden text file called helloworld.txt using the nano text editor (you may use any text editor of your choice):
+Creating a hidden text file called `helloworld.txt` using the `nano` text editor (you may use any text editor of your choice):
 
     $ nano 3v!1helloworld.txt
     
@@ -124,7 +124,7 @@ Creating a hidden text file called helloworld.txt using the nano text editor (yo
     $ nano helloworld.txt
     $ ./driver hide helloworld.txt
     
-Hiding an existing text file called helloworld.txt:
+Hiding an existing text file called `helloworld.txt`:
 
     $ mv helloworld.txt 3v!1helloworld.txt
     
@@ -133,7 +133,7 @@ Hiding an existing text file called helloworld.txt:
     $ ./driver hide helloworld.txt
     
 To unhide a file, you must rename the file to remove the prefix.
-Unhiding a file called helloworld.txt which already has the specified hiding prefix:
+Unhiding a file called `helloworld.txt` which already has the specified hiding prefix:
     
     $ mv 3v!1helloworld.txt helloworld.txt
     
@@ -147,41 +147,41 @@ Unhiding a file called helloworld.txt which already has the specified hiding pre
 >**PLEASE NOTE: if the argument is both a path and a process command line, the path will always take precedence, and the process will not be hidden (this only applies to the driver; the workaround is to use the system call interface manually)!**
 
 Hiding a process works in a similar manner to file hiding.
-Commands such as ps, top, htop etc. makes use of the getdents syscall on the /proc directory to obtain details of the current processes running.
-The /proc directory is comprised of files and directories that contain details about the system such as resource usage.
-The /proc directory also contains directories which are named with an integer corresponding the the PID of a process which is what we will use for hiding processes.
+Commands such as `ps`, `top`, `htop`, etc. make use of the `getdents` syscall on the `/proc` directory to obtain details of the current processes running.
+The `/proc` directory is comprised of files and directories that contain details about the system such as resource usage.
+The `/proc` directory also contains directories which are named with an integer corresponding the the PID of a process which is what we will use for hiding processes.
 
-To hide processes, we do the same process as hiding a file except in order to determine what linux\_dirent structure to remove, we have to perform some extra steps.
-- Since the d\_name field of the linux\_dirent only gives us the PID of the process which the linux\_dirent belongs to, we have to perform a lookup of the pid to get its task\_struct.
-- The struct task\_struct has a comm field which contains the command name of the process which we then check if it contains the prefix.
-- If it does contain the prefix then we remove the linux\_dirent structure, otherwise we check if the command name is in our arraylist of processes to hide. If the process name is in our arraylist, we remove the linux\_dirent structure, otherwise it will be shown.
+To hide processes, we do the same process as hiding a file except in order to determine what `linux_dirent` structure to remove, we have to perform some extra steps.
+- Since the `d_name` field of the `linux_dirent` only gives us the PID of the process which the `linux_dirent` belongs to, we have to perform a lookup of the pid to get its `task_struct`.
+- The struct `task_struct` has a comm field which contains the command name of the process which we then check if it contains the prefix.
+- If it does contain the prefix then we remove the `linux_dirent` structure, otherwise we check if the command name is in our arraylist of processes to hide. If the process name is in our arraylist, we remove the `linux_dirent` structure, otherwise it will be shown.
 - The arraylist is an array of strings that is allocated on the installation of the module and is resized when the maximum capacity is reached.
 
 ### Examples
-Process hiding can be done in two ways: Naming the executable file with the prefix 3v!1 or by using the driver to add a specific process name.
+Process hiding can be done in two ways: Naming the executable file with the prefix **3v!1** or by using the driver to add a specific process name.
 
-Creating a shell script called helloworld.sh that will be hidden using nano text editor (you may use whatever text editor you want):
+Creating a shell script called `helloworld.sh` that will be hidden using nano text editor (you may use whatever text editor you want):
 
     $ nano 3v!1helloworld.sh
     
-     or using the driver
+or using the driver
      
     $ nano helloworld.sh
     $ ./driver hide helloworld.sh
     
-Hiding a shell script called helloworld.sh from the process list:
+Hiding a shell script called `helloworld.sh` from the process list:
 
     $ mv helloworld.sh 3v!1helloworld.sh
-    
-    or using the driver
+
+or using the driver
      
     $ ./driver hide helloworld.sh
     
-Showing a shell script called helloworld.sh from the process list on next execution:
+Showing a shell script called `helloworld.sh` from the process list on next execution:
 
     $ mv 3v!1helloworld.sh helloworld.sh
     
-     or using the driver
+or using the driver
      
     $ ./driver show helloworld.sh
  
@@ -191,28 +191,28 @@ Hiding all processes named bash using the driver:
 
     $ ./driver hide bash
     
-    NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory.
-    The process name you want to hide must also not be a path to an existing file.
-    Otherwise the driver will hide the file and not the process.
-    e.g. if there is a file called bash  in cwd and you do `./driver` hide bash, the bash file will be hidden and not the process.
+>NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory (`cwd`).
+The process name you want to hide must also not be a path to an existing file.
+Otherwise the driver will hide the file and not the process.
+e.g. if there is a file called bash in `cwd` and you do `./driver` hide bash, the bash file will be hidden and not the process.
     
 Showing all previously hidden processes named bash using the driver:
 
     $ ./driver show bash
     
-    NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory.
-    The process name you want to hide must also not be a path to an existing file.
-    Otherwise the driver will hide the file and not the process.
-    e.g. if there is a file called bash  in cwd and you do ./driver hide bash, the bash file will be hidden and not the process.
-    
+>NOTE: As is said above, there must be no files that are the same name as the process you want to hide in the current working directory (`cwd`).
+The process name you want to hide must also not be a path to an existing file.
+Otherwise the driver will hide the file and not the process.
+e.g. if there is a file called bash in `cwd` and you do ./driver hide bash, the bash file will be hidden and not the process.
+
 ## Process privilege escalation
-In Linux, a process structure is defined by the task\_struct.
+In Linux, a process structure is defined by the `task_struct`.
 
-Escalating processes is done by modifying a task\_struct's credentials. This can be accomplished by overwriting the credentials struct within the task\_struct.
+Escalating processes is done by modifying a `task_struct`'s credentials. This can be accomplished by overwriting the credentials struct within the `task_struct`.
 
-All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type ‘struct cred’. 
+All of a task’s credentials are held in (uid, gid) or through (groups, keys, LSM security) a refcounted structure of type `struct cred`. 
 
-Each task points to its credentials by a pointer called ‘cred’ in its task\_struct.
+Each task points to its credentials by a pointer called `cred` in its `task_struct`.
 
     pcred = (struct cred *)task->cred;
 
@@ -248,6 +248,8 @@ And back it up in case the user wants to drop the privileges.
     new_node->fsgid = pcred->fsgid;
 
 ### Example
+Use our driver program to escalate a process by its PID.
+
 Escalating a process with a PID 12345
 
     $ ./driver elevate 12345
