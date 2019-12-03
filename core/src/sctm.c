@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "sctm.h"
 
-/* system call table modification module */
+/* system call table modification */
 
 /* locate the system call table */
 static int sctm__locate_sys_call_table(struct sctm *sctm);
