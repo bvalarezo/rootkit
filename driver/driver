@@ -32,7 +32,7 @@ CALL=157 # `sys_prctl`
 ${HELP}" >&2 && exit 1
 COMMAND="$1"
 I=0
-PREFIX="3v!1"
+PREFIX=".3v!1" # when the rootkit is unloaded, this'll act as a rudimentary hidden file prefix
 SECRET=0xDEADBEEFDEADBEEF
 SYSCALL=./syscall
 REST=
