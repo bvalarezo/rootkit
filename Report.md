@@ -270,8 +270,20 @@ Making those lines visible again is as simple as:
 
     $ ./driver unfugitive
 
+## Core
+The rootkit core is built upon the System Call Table Modifier (`sctm` for short), which manages hooks on the system call table.
+Under this approach, extensibility abounds.
 
-## Using the System Call Table Modifier (`sctm`)
+### Locating the System Call Table
+For cleanliness (and ease of implementation), we opted to use the kernel's symbol table interface (`kallsyms`).
+However, that's not to say that this is the only method of locating the syscall table that `sctm` supports.
+`sctm`'s `sctm__locate_system_call_table` can easily be modified to locate the system call table in any number of ways.
+For example, we explored:
+- searching for a sentinel address
+and
+- probabilistic classification
+
+### Using the System Call Table Modifier (`sctm`)
 `sctm` is partially object-oriented (in that all operations occur on a `struct sctm *`);
 as a result, a `struct sctm` instance **must** be initialized with `sctm_init` and finalized with `sctm_cleanup`.
 A simple (likely incomplete) example follows.
