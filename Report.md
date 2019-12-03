@@ -31,10 +31,9 @@ This module is composed of two components, the core and the driver. Each compone
 
 >The following commands assume that this project folder is the current directory.
 ### Core
-The core program is the Linux kernel module that will handle system call hooking and other operations in the kernel space. All of these commands should be ran in the *core* directory. 
+The core program is the Linux kernel module that will handle system call hooking and other operations in the kernel space.
+All of these commands should be ran in `./core`. 
 >**You must have root privileges to run these installation commands**.
-
-    # cd core
 
 #### Build
 
@@ -48,8 +47,7 @@ To install the module, run `insmod`
 
     # insmod src/blob.ko  
 
-#### Build & Install
- This one-liner will build & install the module for us, provided by our Makefile.
+or just:
 
     # make install
 
@@ -113,7 +111,7 @@ To determine what counts as a desired `linux_dirent` structure to remove, we che
 If it contains said prefix, we will remove it from the linked list by shifting the entries ahead of the one we want to delete onto the current one.
 
 ### Examples
-To hide a file, you must add the prefix to the front of its name ("**3v!1**" is the prefix for our rootkit).
+To hide a file, you must add the prefix to the front of its name (`"3v!1"` is the prefix for our rootkit).
 
 Creating a hidden text file called `helloworld.txt` using the `nano` text editor (you may use any text editor of your choice):
 

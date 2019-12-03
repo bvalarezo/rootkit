@@ -53,7 +53,7 @@ if [ "${COMMAND}" = hide ] || [ "${COMMAND}" = show ]
 then
   for ARG in ${REST}
   do
-    PREFIXED=`dirname "${ARG}"`"${PREFIX}"`basename "${ARG}"`
+    PREFIXED=`dirname "${ARG}"`/"${PREFIX}"`basename "${ARG}"`
 
     if [ "${COMMAND}" = hide ] \
       && [ -e "${ARG}" ]
