@@ -85,11 +85,11 @@ Client makes a system call, with these arguments:
 
 Module intercepts the system call, and checks that the secret is accurate before evaluating the command.
 
-Use the `driver` script to send remote commands to the module.  
+Use the `driver` POSIX script to send remote commands to the module.  
 
     $ ./driver COMMAND [ULONG | 0xHEXULONG | CARRAY ...]
 
-> **PLEASE NOTE: the driver script doesn't properly handle white space; to bypass this, use the system call directly.**
+> **PLEASE NOTE: the driver script doesn't properly handle whitespace; to bypass this, execute the system call directly.**
 
 |Command| Description |
 |--|--|
@@ -101,17 +101,18 @@ Use the `driver` script to send remote commands to the module.
 | `unfugitive` | show lines in "/etc/passwd" and "/etc/shadow" |
 
 ## File Hiding
-Commands such as `ps` or `tree` make use of the getdents(GETDirectoryENTrieS) syscall to get a list of directory entries at the given directory.
+Commands such as `ls`, `ps` or `tree` make use of the `getdents()` syscall to list directory entries at the given directory.
 
-The getdents syscall creates a linked list of directory entry structures (defined by `linux_dirent` and `linux_dirent64`) and fills it into a caller provided pointer and then returns the number of bytes written into the pointer back to the caller.
+The `getdents` syscall creates a linked list of directory entry structures (defined by `linux_dirent` and `linux_dirent64`) and fills it into a caller provided pointer and then returns the number of bytes written into the pointer back to the caller.
 
-In order to hide files, we just call the original getdents syscall to generate the structure and then we need to remove the desired `linux_dirent` structures from the linked list and alter the count of bytes returned by getdents.
+In order to hide files, we just call the original `getdents` syscall to generate the structure and then we need to remove the desired `linux_dirent` structures from the linked list and alter the count of bytes returned by `getdents`.
 
-To determine what counts as a desired `linux_dirent` structure to remove, we check if the `d_name` field in the `linux_dirent` structure contains a set prefix in the file name. 
-If it contains said prefix, we will remove it from the linked list by shifting the entries ahead of the one we want to delete onto the current one.
+To determine what counts as a desired `linux_dirent` structure to remove, we check if the `d_name` field in the `linux_dirent` structure contains a set *prefix* in the file name. 
+If it contains said *prefix*, we will remove it from the linked list by shifting the entries ahead of the one we want to delete onto the current one.
 
 ### Examples
-To hide a file, you must add the prefix to the front of its name (`"3v!1"` is the prefix for our rootkit).
+To hide a file, you must add the *prefix* to the front of its name. 
+> **"`3v!1`"** is the *prefix* for our rootkit.
 
 Creating a hidden text file called `helloworld.txt` using the `nano` text editor (you may use any text editor of your choice):
 
@@ -156,7 +157,7 @@ To hide processes, we do the same process as hiding a file except in order to de
 - The arraylist is an array of strings that is allocated on the installation of the module and is resized when the maximum capacity is reached.
 
 ### Examples
-Process hiding can be done in two ways: Naming the executable file with the prefix **3v!1** or by using the driver to add a specific process name.
+Process hiding can be done in two ways: Naming the executable file with the prefix **`3v!1`** or by using the driver to add a specific process name.
 
 Creating a shell script called `helloworld.sh` that will be hidden using nano text editor (you may use whatever text editor you want):
 
@@ -257,18 +258,17 @@ Dropping the escalated process back to its original UID
 
 > **Note:** You may only drop processes you have escalated before.
 
-## Backdoor Account
+## User Hiding
 > **PLEASE NOTE: at most, 1 account can be hidden at a time**
 The rootkit hides a backdoor account by hijacking the read syscall and truncating parts of the output buffer.
 
-### Implementation Details
-The module hijacks the system calls open, read, and close. The idea is that when a normal file is opened, all three syscalls will return their regular outputs. However, when files such as /etc/passwd and /etc/shadow are being opened, a flag called "erase" is triggered for read syscall to do specific hiding. 
+The module hijacks the system calls `open`, `read`, and `close`. The idea is that when a normal file is opened, all three syscalls will return their regular outputs. However, when files such as /etc/passwd and /etc/shadow are being opened, a flag called "*erase*" is triggered for the `read` syscall to do specific hiding. 
 
-The flag erase is an enum with the following definition.
+The flag *erase* is an enum with the following definition.
 
     enum file_content_hide {NONE, PASS_E, SHAD_E} file_content_hide;
 
-A switch statement is used to determine the content to hide (stored in string variable hidden).
+A switch statement is used to determine the content to hide (stored in string variable `hidden`).
 
     switch(erase){
         case PASS_E:
@@ -282,7 +282,7 @@ A switch statement is used to determine the content to hide (stored in string va
             break;
     }
 
-We then proceed to null out the part of the content we want to hide, and substract hidden from return size.
+We then proceed to null out the part of the content we want to hide. We substract `hidden` from return size.
 
     if(hidden != NULL){
         ptr = strnstr(buf, hidden, count);
@@ -292,10 +292,10 @@ We then proceed to null out the part of the content we want to hide, and substra
         }
     }
 
-> **Note** We decide to take out the function that adds a backdoor account, as we can add a backdoor account by elevating to root privilege and add the account dynamically using useradd, instead of adding a fixed backdoor account. 
+> **Note** This function does not **add** backdoor accounts, it only hides an exisiting one. You will have to use tools such as `useradd` to create a backdoor account on the system you wish to hide.  
 
-### Hiding an Account
-Pass 1 line from "/etc/passwd" along with another from "/etc/shadow" into the driver:
+### Example
+Pass 1 line from `/etc/passwd` along with another from `/etc/shadow` into the driver:
 
     $ ./driver fugitive `cat /etc/passwd | grep MY_USERNAME` `sudo cat /etc/shadow | grep MY_USERNAME`
 
@@ -303,7 +303,7 @@ Making those lines visible again is as simple as:
 
     $ ./driver unfugitive
 
-## Core
+## Details on the Core
 The rootkit core is built upon the System Call Table Modifier (`sctm` for short), which manages hooks on the system call table.
 Under this approach, extensibility abounds.
 
