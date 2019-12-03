@@ -64,7 +64,7 @@ In the event that you need to re-compile our module, you can clean the compiled 
     # make clean
 
 ### Driver
-The driver program is used to communicate to the core program from user space. This will interface the client and the core by accepting a series of command arguements. All of these commands should be ran in the *driver* directory. 
+The driver program is used to communicate to the core program from user space. This will interface the client and the core by accepting a series of command arguements. All of these commands should be ran in `./driver`. 
 
     $ cd driver
 
